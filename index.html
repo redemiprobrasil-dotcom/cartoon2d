@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#6c3ce9">
+<title>Desenho Falante – crie vídeos de desenho 2D grátis</title>
+<meta name="description" content="Cole uma história e gere um vídeo MP4 de desenho animado 2D com personagens falando. Grátis, sem cadastro, tudo no navegador.">
+<style>
+:root{--pri:#6c3ce9;--pri2:#9b6bff;--bg:#f4f1ff;--card:#fff;--txt:#1d1733;--mut:#6b6485;--ok:#1a9e5c;--err:#d23b3b;--warn:#b86e00}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--txt);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{background:linear-gradient(135deg,var(--pri),#e0469b);color:#fff;padding:18px 16px 22px;text-align:center}
+header h1{margin:0;font-size:1.6rem}
+header p{margin:6px 0 0;opacity:.92;font-size:.95rem}
+main{max-width:760px;margin:0 auto;padding:12px}
+.card{background:var(--card);border-radius:16px;padding:16px;margin:12px 0;box-shadow:0 2px 10px rgba(60,30,120,.08)}
+.card h2{margin:0 0 10px;font-size:1.15rem}
+label{display:block;font-weight:600;margin:10px 0 4px;font-size:.93rem}
+textarea,input[type=text],select{width:100%;font:inherit;padding:10px 12px;border:1.5px solid #d8d0f3;border-radius:12px;background:#fff;color:var(--txt)}
+textarea{min-height:230px;resize:vertical;font-size:15px}
+textarea:focus,input:focus,select:focus{outline:2px solid var(--pri2);border-color:transparent}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chk{display:flex;align-items:center;gap:8px;font-weight:600;margin-top:12px}
+.chk input{width:22px;height:22px}
+button{font:inherit;font-weight:700;border:0;border-radius:12px;padding:12px 16px;cursor:pointer;background:var(--pri);color:#fff;touch-action:manipulation}
+button:disabled{opacity:.5;cursor:not-allowed}
+button.sec{background:#ece6ff;color:var(--pri)}
+button.big{width:100%;font-size:1.08rem;padding:15px;margin-top:14px}
+button.sm{padding:7px 10px;font-size:.85rem;border-radius:10px}
+.hint{color:var(--mut);font-size:.85rem;margin:6px 0 0}
+.msg{border-radius:12px;padding:10px 12px;margin:10px 0;font-size:.92rem}
+.msg.err{background:#fde8e8;color:var(--err)}
+.msg.warn{background:#fff4e0;color:var(--warn)}
+.msg.ok{background:#e3f7ec;color:var(--ok)}
+.msg.info{background:#ece6ff;color:#43308f}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.item{border:1.5px solid #e6e0fa;border-radius:14px;padding:8px;display:flex;flex-direction:column;gap:6px;background:#fcfbff}
+.item .thumb{position:relative;width:100%;aspect-ratio:2/3;border-radius:10px;overflow:hidden;background:repeating-conic-gradient(#eee 0 25%,#fff 0 50%) 0 0/16px 16px;display:flex;align-items:center;justify-content:center}
+.item .thumb.bg{aspect-ratio:16/10;background:#eee}
+.item .thumb canvas,.item .thumb img{max-width:100%;max-height:100%;display:block}
+.item .thumb .st{position:absolute;inset:auto 0 0 0;background:rgba(0,0,0,.6);color:#fff;font-size:.75rem;padding:4px 6px;text-align:center}
+.item .name{font-weight:700;font-size:.95rem;word-break:break-word}
+.item input[type=text],.item select{padding:7px 8px;font-size:.85rem;border-radius:9px}
+.item .btns{display:flex;gap:6px;flex-wrap:wrap}
+.mouthDot{position:absolute;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:rgba(255,40,80,.85);border:2px solid #fff;pointer-events:none}
+.prog{height:14px;background:#ece6ff;border-radius:99px;overflow:hidden;margin:8px 0}
+.prog>div{height:100%;width:0;background:linear-gradient(90deg,var(--pri),#e0469b);transition:width .2s}
+.stages{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0;font-size:.8rem}
+.stages span{padding:4px 8px;border-radius:99px;background:#f0edf9;color:var(--mut)}
+.stages span.on{background:var(--pri);color:#fff}
+.stages span.done{background:#d5f2e2;color:var(--ok)}
+#stageTxt{font-weight:600;font-size:.95rem}
+#live{width:100%;max-height:60vh;object-fit:contain;background:#111;border-radius:12px;display:block;margin:10px auto}
+video{width:100%;max-height:70vh;background:#000;border-radius:12px;display:block;margin:10px 0}
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hidden{display:none!important}
+details{margin-top:10px}
+summary{cursor:pointer;font-weight:600;color:var(--pri)}
+footer{text-align:center;color:var(--mut);font-size:.8rem;padding:18px 12px 30px}
+footer a{color:var(--pri)}
+@media (max-width:420px){.row{grid-template-columns:1fr}.grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<header>
+  <h1>🎬 Desenho Falante</h1>
+  <p>Cole uma história e receba um vídeo MP4 de desenho 2D com personagens falando. Grátis, sem cadastro, tudo no seu navegador.</p>
+</header>
+<main>
+  <div id="envMsg"></div>
+
+  <section class="card" id="step1">
+    <h2>1. Sua história</h2>
+    <textarea id="story" spellcheck="true"></textarea>
+    <p class="hint">Formato: <b>Nome: fala</b> = diálogo. <b>Narrador: …</b> ou linha comum = narração. Linha em branco ou <b>## Lugar</b> = nova cena (o texto depois de ## vira o cenário). Dica: “Pipo, um coelho branco de colete azul, …” ajuda a desenhar o personagem.</p>
+    <label for="style">Estilo visual</label>
+    <input type="text" id="style" value="cartoon 2D colorido, traço limpo, estilo animação infantil">
+    <div class="row">
+      <div>
+        <label for="format">Formato</label>
+        <select id="format">
+          <option value="9:16">9:16 – Reels / TikTok / Shorts</option>
+          <option value="16:9">16:9 – YouTube</option>
+          <option value="1:1">1:1 – Quadrado</option>
+          <option value="4:5">4:5 – Feed Instagram</option>
+        </select>
+      </div>
+      <div>
+        <label for="duration">Duração</label>
+        <select id="duration">
+          <option value="0">Automático (pela fala)</option>
+          <option value="30">30 segundos</option>
+          <option value="60">60 segundos</option>
+          <option value="90">90 segundos</option>
+          <option value="180">3 minutos</option>
+        </select>
+      </div>
+    </div>
+    <label class="chk"><input type="checkbox" id="subs" checked> Legendas (nome de quem fala + texto)</label>
+    <button class="big" id="btnAnalyze">✨ Criar personagens e cenários</button>
+    <div id="msg1"></div>
+  </section>
+
+  <section class="card hidden" id="step2">
+    <h2>2. Prévia: personagens, vozes e cenários</h2>
+    <p class="hint">Cada personagem é desenhado <b>uma vez</b> e reaproveitado em todas as cenas. Não gostou? Toque em 🔄 para gerar outro. Toque no desenho para marcar onde fica a <b>boca</b> (ponto vermelho).</p>
+    <div id="msg2"></div>
+    <h3 style="margin:12px 0 6px;font-size:1rem">Personagens</h3>
+    <div class="grid" id="charGrid"></div>
+    <div class="item" style="margin-top:10px">
+      <div class="name">🎙️ Narrador</div>
+      <div class="row">
+        <select id="narVoice"></select>
+        <select id="narSpeed"></select>
+      </div>
+      <div class="btns"><button class="sm sec" id="narTest">▶️ Ouvir</button></div>
+    </div>
+    <h3 style="margin:14px 0 6px;font-size:1rem">Cenários</h3>
+    <div class="grid" id="bgGrid"></div>
+    <button class="big" id="btnRender" disabled>🎬 Gerar vídeo</button>
+    <p class="hint" id="renderHint">Na primeira vez o modelo de voz (~92 MB) é baixado e fica guardado no navegador.</p>
+  </section>
+
+  <section class="card hidden" id="step3">
+    <h2>3. Vídeo</h2>
+    <div class="stages" id="stages">
+      <span data-s="1">1 Modelo de voz</span><span data-s="2">2 Vozes</span><span data-s="3">3 Animação + vídeo</span><span data-s="4">4 Finalizar</span>
+    </div>
+    <div id="stageTxt">Preparando…</div>
+    <div class="prog"><div id="progBar"></div></div>
+    <div id="msg3"></div>
+    <canvas id="live" width="720" height="1280"></canvas>
+    <div id="result" class="hidden">
+      <video id="outVideo" controls playsinline></video>
+      <div class="acts">
+        <button id="btnDownload">⬇️ Baixar</button>
+        <button id="btnShare" class="sec">📤 Compartilhar</button>
+      </div>
+      <p class="hint" id="resultInfo"></p>
+    </div>
+    <div class="acts" style="margin-top:10px">
+      <button id="btnLive" class="sec hidden">▶️ Assistir com voz do navegador</button>
+      <button id="btnCancel" class="sec">✖ Cancelar</button>
+    </div>
+  </section>
+
+  <details class="card">
+    <summary>Como funciona / limites</summary>
+    <ul class="hint">
+      <li>Imagens: <b>Pollinations.ai</b> (gratuito). Pode demorar de 10 s a 2 min por imagem; se falhar, o app tenta de novo sozinho.</li>
+      <li>Vozes: <b>Kokoro TTS</b> rodando no seu celular (vozes pt-BR Dora, Alex e Santa). O primeiro uso baixa ~92 MB; depois fica em cache.</li>
+      <li>Vídeo: montado e codificado localmente em <b>MP4 (H.264 + AAC)</b>. Nada é enviado para servidores.</li>
+      <li>Mantenha a tela ligada e o app aberto enquanto o vídeo é gerado.</li>
+    </ul>
+  </details>
+</main>
+<footer>Feito com Pollinations.ai · Kokoro-82M · mp4-muxer. Sem contas, sem chaves, sem custos.</footer>
+<script type="text/plain" id="ttsWorkerSrc">
+import { KokoroTTS } from "https://cdn.jsdelivr.net/npm/kokoro-js@1.2.1/dist/kokoro.web.js";
+let tts = null;
+self.onmessage = async (e) => {
+  const m = e.data || {};
+  if (m.type === "load") {
+    if (tts) { self.postMessage({ type: "loaded" }); return; }
+    try {
+      tts = await KokoroTTS.from_pretrained("onnx-community/Kokoro-82M-v1.0-ONNX", {
+        dtype: "q8", device: "wasm",
+        progress_callback: (p) => {
+          try { self.postMessage({ type: "progress", p: { status: p.status, file: p.file, loaded: p.loaded, total: p.total } }); } catch (_) {}
+        }
+      });
+      self.postMessage({ type: "loaded" });
+    } catch (err) {
+      self.postMessage({ type: "loadError", error: String((err && err.message) || err) });
+    }
+    return;
+  }
+  if (m.type === "gen") {
+    try {
+      if (!tts) throw new Error("modelo não carregado");
+      const enc = tts.tokenizer(m.phonemes, { truncation: true });
+      const audio = await tts.generate_from_ids(enc.input_ids, { voice: m.voice, speed: m.speed });
+      const data = new Float32Array(audio.audio);
+      self.postMessage({ type: "audio", id: m.id, data, sr: audio.sampling_rate }, [data.buffer]);
+    } catch (err) {
+      self.postMessage({ type: "genError", id: m.id, error: String((err && err.message) || err) });
+    }
+  }
+};
+</script>
+<script type="module">
+// ===== pt-BR G2P (regras, estilo eSpeak-NG pt-br + mapeamento misaki usado no treino do Kokoro) =====
+const PTG2P = (() => {
+  const VOW = "aáàâãeéêiíoóôõuúü";
+  const isV = c => !!c && VOW.includes(c);
+  const ACC = "áéíóúâêô";
+  const base = c => ({á:"a",à:"a",â:"a",ã:"a",é:"e",ê:"e",í:"i",ó:"o",ô:"o",õ:"o",ú:"u",ü:"u"}[c] || c);
+  // palavras com vogal tônica aberta (ɛ/ɔ) sem acento gráfico — as mais comuns
+  const OPEN = new Set(("ela elas aquela aquelas nela nelas dela delas bela belo janela janelas festa festas floresta florestas terra guerra ferro pedra sete dez perto certo certa velho velha " +
+    "resto testa tempestade mel pele neve seta reta meta vela velas era eram esta estas essa essas quero quer serra fera feras regra febre leve leva levo zero " +
+    "porta portas escola escolas agora hora horas forte morte nossa nossas nosso nossos vossa bola bolas cobra cobras roda rodas mole nova novas novo " +
+    "sol pobre obra obras moda porco porca corpo corpos olhos ovos fogo fora sogra loja lojas gosta gostas gostam volta voltas toca toca-se nota notas " +
+    "alegre alegres esperto esperta castelo castelos espera tarefa tarefas enorme enormes porcos topo selva começa nove verbos verbo melhor maior pior menor " +
+    "cola rosa rosas foste costa costas copo copa roupa? chora choro morre morrer? história").split(/\s+/).filter(w=>!w.endsWith("?")));
+  const LEX = { // palavras funcionais (átonas)
+    "e":"i","o":"ʊ","os":"ʊs","a":"a","as":"as","de":"ʤy","do":"dʊ","dos":"dʊs","da":"da","das":"das","que":"ky","se":"sy","me":"my","te":"ʧy","lhe":"ʎy","lhes":"ʎys",
+    "em":"Aŋ","no":"nʊ","nos":"nʊs","na":"na","nas":"nas","com":"koŋ","por":"por","para":"paɾæ","pra":"pɾa","pro":"pɾʊ","um":"ˈũŋ","uns":"ˈũŋs","é":"ˈɛ","há":"ˈa",
+    "mas":"mas","nem":"nAŋ","sem":"sAŋ","ao":"W","aos":"Ws","à":"ˈa","às":"ˈas","meu":"mˈeʊ","seu":"sˈeʊ","muito":"mwˈiŋtʊ","muita":"mwˈiŋtæ","muitos":"mwˈiŋtʊs","muitas":"mwˈiŋtæs",
+    "você":"vosˈe","vocês":"vosˈes","ok":"ˈokˈeɪ","oi":"ˈoɪ","uau":"wˈW","tchau":"ʧˈW","ah":"ˈa","oh":"ˈɔ","eh":"ˈe","hum":"ˈũŋ"
+  };
+  const UNITS=["zero","um","dois","três","quatro","cinco","seis","sete","oito","nove","dez","onze","doze","treze","catorze","quinze","dezesseis","dezessete","dezoito","dezenove"];
+  const TENS=["","","vinte","trinta","quarenta","cinquenta","sessenta","setenta","oitenta","noventa"];
+  const HUND=["","cento","duzentos","trezentos","quatrocentos","quinhentos","seiscentos","setecentos","oitocentos","novecentos"];
+  function num(n){ n=Math.floor(n); if(n<20) return UNITS[n]; if(n<100){const t=Math.floor(n/10),u=n%10;return TENS[t]+(u?" e "+UNITS[u]:"");}
+    if(n===100) return "cem"; if(n<1000){const h=Math.floor(n/100),r=n%100;return HUND[h]+(r?" e "+num(r):"");}
+    if(n<1e6){const k=Math.floor(n/1000),r=n%1000;return (k===1?"mil":num(k)+" mil")+(r?((r<100||r%100===0)?" e ":" ")+num(r):"");}
+    if(n<1e9){const m=Math.floor(n/1e6),r=n%1e6;return (m===1?"um milhão":num(m)+" milhões")+(r?" "+num(r):"");} return String(n).split("").map(d=>UNITS[+d]).join(" "); }
+
+  function word(w0){
+    let w=w0.toLowerCase().normalize("NFC");
+    if(LEX[w]!==undefined) return LEX[w];
+    const L=[...w], n=L.length;
+    // 1) papéis das vogais: nucleus | glide | silent
+    const role=new Array(n).fill(null);
+    for(let i=0;i<n;i++) if(isV(L[i])) role[i]="N";
+    for(let i=0;i<n;i++){
+      const c=L[i];
+      if((c==="u"||c==="ü") && (L[i-1]==="q"||L[i-1]==="g") && isV(L[i+1])){
+        role[i] = (c==="u" && "eéêií".includes(L[i+1])) ? "S" : "G"; // qu/gu + e/i: u mudo
+      }
+    }
+    for(let i=1;i<n;i++){ // ditongos decrescentes V + i/u
+      const c=L[i];
+      if((c==="i"||c==="u") && role[i]==="N" && role[i-1]==="N"){
+        const a=L[i+1], b=L[i+2];
+        const hiatus = (a==="n"&&b==="h") || ("mnrlz".includes(a||"#") && a && !isV(b)) ;
+        if(!hiatus && !(L[i-1]==="i"&&c==="i") && !(L[i-1]==="u"&&c==="u")) role[i]="G";
+      }
+      if((c==="o"||c==="e") && (L[i-1]==="ã"||L[i-1]==="õ") && role[i]==="N") role[i]="G"; // ão, ãe, õe
+    }
+    // 2) sílaba tônica
+    const nuc=[]; for(let i=0;i<n;i++) if(role[i]==="N") nuc.push(i);
+    if(!nuc.length) return L.map(c=>({y:"i",w:"w",k:"k"}[c]||c)).join("");
+    let st=-1;
+    for(const i of nuc) if(ACC.includes(L[i])) st=i;
+    if(st<0) for(const i of nuc) if(L[i]==="ã"||L[i]==="õ") st=i;
+    if(st<0){
+      if(/(a|e|o|as|es|os|am|em|ens)$/.test(w) && nuc.length>=2){
+        st=nuc[nuc.length-2];
+      } else st=nuc[nuc.length-1];
+    }
+    // ia/io/ua átonos finais após tônica anterior -> semivogal (história, água)
+    for(let k=nuc.length-2;k>=0;k--){
+      const i=nuc[k];
+      if(i>st && (L[i]==="i"||L[i]==="u"||L[i]==="e") && k===nuc.length-2 && nuc[k+1]===i+1 && /^(s)?$/.test(L.slice(i+2).join(""))) role[i]="G";
+    }
+    const nuc2=[]; for(let i=0;i<n;i++) if(role[i]==="N") nuc2.push(i);
+    const lastN=nuc2[nuc2.length-1];
+    const stressIdx=st;
+    const openW = OPEN.has(w) || /[^aeiou](osos|osa|osas)$/.test(w);
+    // 3) conversão
+    const out=[]; // unidades
+    const nextSound = j => { while(j<n && (L[j]==="h" || role[j]==="S")) j++; return j; };
+    const voicedC = c => "bdgjlmnrvz".includes(c||"#");
+    for(let i=0;i<n;i++){
+      const c=L[i], p=L[i-1], nx=L[i+1], nx2=L[i+2];
+      if(role[i]==="S") continue;
+      if(role[i]==="N"||role[i]==="G"){
+        if(role[i]==="G"){
+          if(c==="o") { out.push("ʊ̃"); continue; }          // ão
+          if(c==="e" && (L[i-1]==="ã"||L[i-1]==="õ")) { out.push(L[i-1]==="õ"?"j":"y"); continue; } // õe / ãe (eSpeak: põe=põj, mãe=mɐ̃y)
+          if((p==="q"||p==="g") && (c==="u"||c==="ü")) { out.push("w"); continue; }
+          if(c==="i"||(c==="e"&&i>stressIdx&&nuc2.includes(i+1))) { out.push(i>stressIdx && nuc2.includes(i+1) ? "j" : "ɪ"); continue; }
+          if(c==="u") { out.push(i>stressIdx && nuc2.includes(i+1) ? "w" : "ʊ"); continue; }
+        }
+        const stressed = i===stressIdx;
+        const final = i===lastN && /^(s)?$/.test(L.slice(i+1).join("")) && !stressed;
+        const post = i>stressIdx;
+        const b=base(c);
+        // nasalidade: V + m/n + consoante/fim
+        let nas = c==="ã"||c==="õ";
+        let nasCons="";
+        if((nx==="m"||nx==="n") && !isV(nx2) && nx2!=="h"){
+          nas=true; nasCons = (nx2==="p"||nx2==="b") ? "m" : "ŋ"; i++;
+          if(nx2===undefined || (nx2==="s" && i+2>=n)){ // final -am/-em/-im/-om/-um(s)
+            if(b==="a" && !stressed){ out.push("ɐ̃ʊ̃"); if(nx2==="s"){out.push("s");i++;} continue; }
+            nasCons="ŋ";
+          }
+        }
+        let v;
+        if(nas){
+          v = {a:"ɐ̃",e:"eɪ",i:"i",o:"o",u:"ũ"}[b];
+          if(c==="õ") v="õ";
+          if(b==="e" && nasCons==="" ) v="ẽ";
+        } else if(b==="a"){
+          if(stressed) v = ((nx==="m"||nx==="n") && isV(nx2)) || (nx==="n"&&nx2==="h") || c==="â" ? "ɐ̃" : "a";
+          else v = (final||post) ? "æ" : ((nx==="n"&&nx2==="h") ? "ɐ̃" : ((nx==="m"||nx==="n") && isV(nx2)) ? "æ" : "a");
+        } else if(b==="e"){
+          if(stressed) v = c==="é" ? "ɛ" : c==="ê" ? "e" : (openW ? "ɛ" : "e");
+          else if(final) v = "y";
+          else v = "e";
+          if(!stressed && i===0 && (nx==="s"||nx==="x") && !isV(nx2)) v="e";
+        } else if(b==="i"){ v="i";
+        } else if(b==="o"){
+          if(stressed) v = c==="ó" ? "ɔ" : c==="ô" ? "o" : (openW ? "ɔ" : "o");
+          else if(final) v="ʊ"; else v="o";
+        } else if(b==="u"){ v="u"; }
+        // ditongos com a próxima semivogal
+        if(role[i+1]==="G" && (L[i+1]==="i"||L[i+1]==="u") && !nas){
+          const g=L[i+1];
+          if(g==="u" && b==="o") { v = v+"w"; i++; }          // ou -> ow
+          else if(g==="i") { v = v+"ɪ"; i++; }
+          else if(g==="u") { v = v+"ʊ"; i++; }
+          if(L[i+1]==="m" || L[i+1]==="n"){ /* raro */ }
+        }
+        if(nas && nasCons) v += nasCons;
+        out.push((stressed?"ˈ":"")+v);
+        continue;
+      }
+      // consoantes
+      const j=nextSound(i+1), nc=L[j];
+      const frontNext = "eéêiíy".includes(L[i+1]||"#");
+      // i sonoro seguinte? (para t/d -> ʧ/ʤ): i, í, ou e final átono
+      const nextIsI = (()=>{ if(!nc) return false; if("iíy".includes(nc) && role[j]!=="G") return true;
+        if(role[j]==="G" && (nc==="i"||nc==="e") && j>stressIdx) return true;
+        if(nc==="e" && role[j]==="N" && j===lastN && j!==stressIdx && /^(s)?$/.test(L.slice(j+1).join(""))) return true; return false; })();
+      switch(c){
+        case "b": out.push("b"); break;
+        case "c":
+          if(nx==="h"){ out.push("ʃ"); i++; }
+          else out.push(frontNext ? "s" : "k"); break;
+        case "ç": out.push("s"); break;
+        case "d": out.push(nextIsI ? "ʤ" : "d"); break;
+        case "f": out.push("f"); break;
+        case "g": out.push(frontNext ? "ʒ" : "ɡ"); break;
+        case "h": break;
+        case "j": out.push("ʒ"); break;
+        case "k": out.push("k"); break;
+        case "l":
+          if(nx==="h"){ out.push("lj"); i++; }
+          else if(!isV(nx) && nx!=="h") out.push((p==="u"||p==="o")?"w":"ʊ");
+          else out.push("l"); break;
+        case "m": out.push("m"); break;
+        case "n":
+          if(nx==="h"){ out.push("ɲ"); i++; } else out.push("n"); break;
+        case "p": out.push("p"); break;
+        case "q": out.push("k"); break;
+        case "r":
+          if(nx==="r"){ out.push("x"); i++; }
+          else if(i===0 || "nls".includes(p||"#")) out.push("x");
+          else if(isV(p) && isV(nx)) out.push("ɾ");
+          else if(!isV(p)) out.push("r");            // encontro consonantal (br, tr...)
+          else if(nx===undefined) out.push("r");      // final de palavra
+          else out.push("ɾə");                        // coda antes de consoante
+          break;
+        case "s":
+          if(nx==="s"){ out.push("s"); i++; }
+          else if(nx==="c" && "eéêií".includes(nx2||"#")){ out.push("s"); i++; }
+          else if(nx==="h"){ out.push("ʃ"); i++; }
+          else if(isV(p) && isV(nx)) out.push("z");
+          else if(nx && !isV(nx) && voicedC(nx) && i>0) out.push("z");
+          else out.push("s"); break;
+        case "t": out.push(nextIsI ? "ʧ" : "t"); break;
+        case "v": out.push("v"); break;
+        case "w": out.push("w"); break;
+        case "x":
+          if(i===1 && (p==="e"||p==="ê")) out.push(isV(nx) ? "z" : "s");
+          else if(nx==="c" && "eéêií".includes(nx2||"#")){ out.push("s"); i++; }
+          else if(nx && !isV(nx)) out.push("s");
+          else out.push("ʃ"); break;
+        case "y": out.push("i"); break;
+        case "z": out.push(nx===undefined ? "s" : "z"); break;
+        default: if(/[a-z]/.test(c)) out.push(c);
+      }
+    }
+    let s=out.join("");
+    // mapeamento misaki (ditongos "ligados" do eSpeak)
+    s=s.replace(/aɪ/g,"I").replace(/aʊ/g,"W").replace(/eɪ/g,"A").replace(/ɔɪ/g,"Y");
+    return s;
+  }
+
+  function sentence(text){
+    let t=String(text).replace(/\s+/g," ").trim();
+    t=t.replace(/(\d+)[.,](\d+)/g,(m,a,b)=>num(+a)+" vírgula "+num(+b)).replace(/\d+/g,m=>" "+num(+m)+" ");
+    t=t.replace(/\bSr\.(?=\s)/g,"senhor").replace(/\bSra\.(?=\s)/g,"senhora").replace(/\bDr\.(?=\s)/g,"doutor").replace(/\bDra\.(?=\s)/g,"doutora");
+    t=t.replace(/[()\[\]{}]/g,",").replace(/[‘’`´]/g,"'").replace(/["“”«»]/g," ").replace(/\.\.\./g,"…").replace(/\s*[—–]\s*|\s-\s/g,", ");
+    const toks=t.match(/[A-Za-zÀ-ÖØ-öø-ÿ]+|[.,!?;:…—"]|\S/g)||[];
+    let out="", prevWord=false;
+    for(let k=0;k<toks.length;k++){
+      const tk=toks[k];
+      if(/^[A-Za-zÀ-ÖØ-öø-ÿ]+$/.test(tk)){
+        let p=word(tk);
+        // sândi: -s final antes de vogal -> z
+        const nx=toks[k+1];
+        if(p.endsWith("s") && nx && /^[aeiouáàéíóúâêôãõh]/i.test(nx)) p=p.slice(0,-1)+"z";
+        out += (prevWord?" ":"") + p; prevWord=true;
+      } else if(/[.,!?;:…]/.test(tk)){
+        out += tk; out+=" "; prevWord=false;
+      }
+    }
+    return out.replace(/\s+/g," ").replace(/([.!?;:…,])\s*,/g,"$1").replace(/^[\s,]+/,"").replace(/[\s,]+$/,"").trim().normalize("NFD");
+  }
+  return { word, sentence, num };
+})();
+
+
+// ===================== Constantes =====================
+const MP4MUXER_URL = "https://cdn.jsdelivr.net/npm/mp4-muxer@5.2.2/+esm";
+const FPS = 30;
+const SR_OUT = 48000;
+const VOICES = [
+  { id: "pf_dora", label: "Dora (feminina)" },
+  { id: "pm_alex", label: "Alex (masculina)" },
+  { id: "pm_santa", label: "Santa (masculina grave)" }
+];
+const SPEEDS = [0.85, 0.9, 1, 1.1, 1.2, 1.3];
+const SPEED_VARIANTS = [1, 1.12, 0.9, 1.2, 0.86, 1.06];
+const FORMATS = { "9:16": [720, 1280], "16:9": [1280, 720], "1:1": [960, 960], "4:5": [768, 960] };
+const BG_SIZE = { "9:16": [576, 1024], "16:9": [1024, 576], "1:1": [832, 832], "4:5": [704, 880] };
+const NARRATOR_NAMES = ["narrador", "narradora", "narracao", "narrator", "narração"];
+const CHAR_COLORS = ["#ffd23f", "#6ee7ff", "#ff8fd8", "#9dff7a", "#ffb36b", "#c3a6ff", "#ff6b6b", "#7af0c4"];
+const EXAMPLE = `## Floresta encantada de manhã
+Narrador: Numa manhã de sol, Luna, uma menina de cabelo cacheado e vestido amarelo, passeava pela floresta.
+Pipo, um coelho branco de colete azul, veio pulando até ela.
+Pipo: Luna! Você viu a minha cenoura dourada?
+Luna: Não vi, Pipo. Mas eu te ajudo a procurar!
+
+## Beira do rio à tarde
+Narrador: Os dois seguiram até o rio, onde algo brilhava na água.
+Luna: Olha lá! Está perto da pedra grande.
+Pipo: Uau! Você é a melhor amiga do mundo!`;
+
+// ===================== Utilidades =====================
+const $ = (id) => document.getElementById(id);
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const smooth = (x) => { x = clamp(x); return x * x * (3 - 2 * x); };
+const norm = (s) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const randSeed = () => Math.floor(Math.random() * 2147483000) + 1;
+function hashSeed(str) { let h = 2166136261; for (const ch of str) { h ^= ch.codePointAt(0); h = Math.imul(h, 16777619); } return (h >>> 0) % 2147483000 + 1; }
+function msg(boxId, text, kind = "info") { const b = $(boxId); if (!b) return; if (!text) { b.innerHTML = ""; return; } b.innerHTML = `<div class="msg ${kind}">${text}</div>`; }
+function addMsg(boxId, text, kind = "info") { const b = $(boxId); if (b) b.insertAdjacentHTML("beforeend", `<div class="msg ${kind}">${text}</div>`); }
+class Cancelled extends Error { constructor() { super("cancelado"); } }
+
+// ===================== Estado =====================
+const S = {
+  scenes: [], chars: new Map(), charOrder: [], bgs: [],
+  narrator: { voice: "pm_santa", speed: 0.95 },
+  charCache: new Map(), bgCache: new Map(),
+  cancel: false, busy: false, lastVideo: null, ttsMode: "kokoro", timeline: null
+};
+
+// ===================== 1. Parser da história =====================
+function parseStory(text) {
+  const lines = text.replace(/\r/g, "").split("\n");
+  const scenes = [];
+  let cur = null;
+  const newScene = (loc) => { cur = { location: loc || "", lines: [] }; scenes.push(cur); };
+  for (let raw of lines) {
+    let line = raw.trim();
+    if (!line) { if (cur && cur.lines.length) cur = null; continue; }
+    if (line.startsWith("##")) {
+      const loc = line.replace(/^#+\s*/, "").trim();
+      if (cur && !cur.lines.length) cur.location = loc; else newScene(loc);
+      continue;
+    }
+    if (line.startsWith("#")) continue; // comentário/título
+    if (!cur) newScene("");
+    line = line.replace(/^[-–—•*>\s]+/, "").replace(/\*\*/g, "").trim();
+    if (!line) continue;
+    const m = line.match(/^([A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ0-9'’.\- ]{0,28}?)\s*(\([^)]{0,40}\))?\s*[:：]\s*(.+)$/);
+    let speaker = null, txt = line;
+    if (m && m[1].trim().split(/\s+/).length <= 3) { speaker = m[1].trim(); txt = m[3].trim(); }
+    txt = txt.replace(/^["“”«»]+|["“”«»]+$/g, "").trim();
+    if (!txt || !/[A-Za-zÀ-ÿ0-9]/.test(txt)) continue;
+    if (speaker && NARRATOR_NAMES.includes(norm(speaker))) speaker = null;
+    cur.lines.push({ speaker, key: speaker ? norm(speaker) : null, text: txt });
+  }
+  return scenes.filter((s) => s.lines.length);
+}
+
+function guessDescription(name, story) {
+  const n = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  let m = story.match(new RegExp(n + "\\s*,\\s*((?:um|uma|o|a)\\s[^,.!?;:\\n]{3,80})", "i"));
+  if (m) return m[1].trim();
+  m = story.match(new RegExp("\\b(?:o|a|um|uma)\\s+([A-Za-zÀ-ÿ]{3,20}(?:\\s+[A-Za-zÀ-ÿ]{3,20})?)\\s+" + n + "\\b", "i"));
+  if (m && !/^(com|para|que|e|de|do|da)$/i.test(m[1])) return m[1].trim();
+  return "";
+}
+const looksFemale = (name) => /a$|e$|i$|y$/i.test(norm(name).split(" ")[0]) && !/(jose|andre|felipe|henrique|jorge|dante|duque|rei|leque|mike|joe|davi|rafael)$/i.test(norm(name));
+
+// ===================== 2. Imagens (Pollinations) =====================
+function pollUrl(prompt, w, h, seed, attempt) {
+  let u = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${w}&height=${h}&seed=${seed}&nologo=true&model=flux`;
+  return u;
+}
+function charPrompt(c, style) {
+  const who = c.desc ? `${c.desc} (named ${c.name})` : `a character named ${c.name}`;
+  return `full body 2D cartoon character, ${who}, standing, front-facing, looking at viewer, whole body visible from head to feet, centered, ${style}, isolated on a plain flat solid pure white background, no shadow, no scenery, no text, single character`;
+}
+function bgPrompt(loc, style) {
+  return `${loc}, 2D cartoon background scenery, wide shot, empty scene, no people, no characters, no animals, no text, ${style}`;
+}
+class HttpErr extends Error { constructor(status, m) { super(m); this.status = status; } }
+// Baixa via fetch (CORS) para saber o motivo da falha; depois carrega como <img crossOrigin="anonymous"> a partir do blob
+async function loadImg(url, timeoutMs = 150000) {
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), timeoutMs);
+  let blob;
+  try {
+    const r = await fetch(url, { mode: "cors", signal: ctl.signal, cache: "force-cache" });
+    if (r.status === 402 || r.status === 429) throw new HttpErr(r.status, "servidor gratuito ocupado (limite por conexão)");
+    if (r.status === 403) throw new HttpErr(r.status, "acesso recusado pelo servidor (403)");
+    if (!r.ok) throw new HttpErr(r.status, "erro do servidor (" + r.status + ")");
+    blob = await r.blob();
+    if (!/^image\//.test(blob.type) && blob.size < 5000) throw new HttpErr(0, "resposta inválida do servidor");
+  } catch (e) {
+    if (e.name === "AbortError") throw new HttpErr(0, "tempo esgotado");
+    if (e instanceof HttpErr) throw e;
+    throw new HttpErr(0, "falha de rede");
+  } finally { clearTimeout(t); }
+  const src = URL.createObjectURL(blob);
+  return await new Promise((res, rej) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => (img.naturalWidth ? res(img) : rej(new HttpErr(0, "imagem vazia")));
+    img.onerror = () => rej(new HttpErr(0, "imagem corrompida"));
+    img.src = src;
+  });
+}
+// fila: o Pollinations gratuito aceita 1 pedido por vez por conexão (senão responde 402)
+const imgQueue = { active: 0, max: 1, list: [] };
+function enqueue(job) { return new Promise((res, rej) => { imgQueue.list.push({ job, res, rej }); pumpQueue(); }); }
+function pumpQueue() {
+  while (imgQueue.active < imgQueue.max && imgQueue.list.length) {
+    const { job, res, rej } = imgQueue.list.shift();
+    imgQueue.active++;
+    job().then(res, rej).finally(() => { setTimeout(() => { imgQueue.active--; pumpQueue(); }, 1200); });
+  }
+}
+async function loadWithRetry(makeUrl, onStatus, tries = 6) {
+  let lastErr;
+  for (let a = 1; a <= tries; a++) {
+    try {
+      onStatus(a === 1 ? "desenhando… (10 s a 2 min)" : `tentando de novo (${a}/${tries})…`);
+      return await loadImg(makeUrl(a));
+    } catch (e) {
+      lastErr = e;
+      if (a < tries) {
+        const wait = e.status === 402 || e.status === 429 ? 12 + 8 * a : 3 * a;
+        for (let s = wait; s > 0; s--) { onStatus(`${e.message}; nova tentativa em ${s}s (${a + 1}/${tries})`); await sleep(1000); }
+      }
+    }
+  }
+  throw lastErr;
+}
+
+// Remove o fundo liso por "flood fill" a partir das bordas (preserva branco dos olhos etc.)
+function keyOut(img) {
+  const w = img.naturalWidth, h = img.naturalHeight;
+  const c = document.createElement("canvas"); c.width = w; c.height = h;
+  const x = c.getContext("2d", { willReadFrequently: true });
+  x.drawImage(img, 0, 0);
+  const id = x.getImageData(0, 0, w, h), d = id.data;
+  const rs = [], gs = [], bs = [];
+  const pushPx = (px, py) => { const i = (py * w + px) * 4; rs.push(d[i]); gs.push(d[i + 1]); bs.push(d[i + 2]); };
+  for (let px = 0; px < w; px += 2) { pushPx(px, 0); pushPx(px, 1); pushPx(px, h - 1); pushPx(px, h - 2); }
+  for (let py = 0; py < h; py += 2) { pushPx(0, py); pushPx(1, py); pushPx(w - 1, py); pushPx(w - 2, py); }
+  const med = (a) => { a.sort((p, q) => p - q); return a[a.length >> 1]; };
+  const br = med(rs), bgc = med(gs), bb = med(bs);
+  const T1 = 58, T2 = 110;
+  const dist = (i) => { const dr = d[i] - br, dg = d[i + 1] - bgc, db = d[i + 2] - bb; return Math.sqrt(dr * dr + dg * dg + db * db); };
+  const N = w * h, bgMask = new Uint8Array(N), q = new Int32Array(N);
+  let qh = 0, qt = 0;
+  const tryPush = (p) => { if (!bgMask[p] && dist(p * 4) < T1) { bgMask[p] = 1; q[qt++] = p; } };
+  for (let px = 0; px < w; px++) { tryPush(px); tryPush((h - 1) * w + px); }
+  for (let py = 0; py < h; py++) { tryPush(py * w); tryPush(py * w + w - 1); }
+  while (qh < qt) {
+    const p = q[qh++], px = p % w, py = (p - px) / w;
+    if (px > 0) tryPush(p - 1); if (px < w - 1) tryPush(p + 1);
+    if (py > 0) tryPush(p - w); if (py < h - 1) tryPush(p + w);
+  }
+  let removed = 0;
+  for (let p = 0; p < N; p++) {
+    if (bgMask[p]) { d[p * 4 + 3] = 0; removed++; continue; }
+    const px = p % w, py = (p - px) / w;
+    const nb = (px > 0 && bgMask[p - 1]) || (px < w - 1 && bgMask[p + 1]) || (py > 0 && bgMask[p - w]) || (py < h - 1 && bgMask[p + w]);
+    if (nb) { const dd = dist(p * 4); if (dd < T2) d[p * 4 + 3] = Math.round(255 * clamp((dd - T1) / (T2 - T1), 0.15, 1)); }
+  }
+  // limpa ilhas de fundo muito pequenas? não — mantém simples; corta para a área útil
+  let minX = w, minY = h, maxX = -1, maxY = -1;
+  for (let py = 0; py < h; py++) for (let px = 0; px < w; px++) {
+    if (d[(py * w + px) * 4 + 3] > 40) { if (px < minX) minX = px; if (px > maxX) maxX = px; if (py < minY) minY = py; if (py > maxY) maxY = py; }
+  }
+  x.putImageData(id, 0, 0);
+  const frac = removed / N;
+  if (maxX < 0) return { canvas: c, ok: false, frac, mouth: { x: 0.5, y: 0.2, w: 0.1 } };
+  const pad = 4;
+  minX = Math.max(0, minX - pad); minY = Math.max(0, minY - pad); maxX = Math.min(w - 1, maxX + pad); maxY = Math.min(h - 1, maxY + pad);
+  const cw = maxX - minX + 1, chh = maxY - minY + 1;
+  const out = document.createElement("canvas"); out.width = cw; out.height = chh;
+  const ox = out.getContext("2d", { willReadFrequently: true });
+  ox.drawImage(c, minX, minY, cw, chh, 0, 0, cw, chh);
+  return { canvas: out, ok: frac > 0.08 && frac < 0.97, frac, mouth: estimateMouth(ox, cw, chh) };
+}
+// Estima a boca: acha o "pescoço" (linha mais estreita abaixo da cabeça) e coloca a boca a ~78% da cabeça
+function estimateMouth(ctx, w, h) {
+  const d = ctx.getImageData(0, 0, w, h).data;
+  const widths = new Float32Array(h), lefts = new Int32Array(h), rights = new Int32Array(h);
+  for (let y = 0; y < h; y++) {
+    let l = -1, r = -1, cnt = 0;
+    for (let x = 0; x < w; x++) if (d[(y * w + x) * 4 + 3] > 100) { cnt++; if (l < 0) l = x; r = x; }
+    widths[y] = cnt; lefts[y] = l; rights[y] = r;
+  }
+  let top = 0; while (top < h && widths[top] < w * 0.03) top++;
+  const sm = (y) => { let s = 0, n = 0; for (let k = -3; k <= 3; k++) { const yy = y + k; if (yy >= 0 && yy < h) { s += widths[yy]; n++; } } return s / n; };
+  const a = Math.floor(top + h * 0.1), b = Math.floor(top + h * 0.42);
+  let neck = Math.floor(top + h * 0.18), best = Infinity, headMax = 0;
+  for (let y = top; y < a; y++) headMax = Math.max(headMax, sm(y));
+  for (let y = a; y < b && y < h; y++) { const v = sm(y); headMax = Math.max(headMax, v); if (v < best && v < headMax * 0.85) { best = v; neck = y; } }
+  if (!isFinite(best)) neck = Math.floor(top + h * 0.2);
+  const my = Math.floor(top + (neck - top) * 0.76);
+  const hy = Math.floor(top + (neck - top) * 0.5);
+  const cx = lefts[hy] >= 0 ? (lefts[hy] + rights[hy]) / 2 : w / 2;
+  const headW = Math.max(w * 0.12, rights[hy] - lefts[hy]);
+  return { x: clamp(cx / w), y: clamp(my / h), w: clamp((headW * 0.24) / w, 0.03, 0.2) };
+}
+function darkVersion(src) {
+  const c = document.createElement("canvas"); c.width = src.width; c.height = src.height;
+  const x = c.getContext("2d"); x.drawImage(src, 0, 0);
+  x.globalCompositeOperation = "source-atop"; x.fillStyle = "rgba(20,10,40,0.38)"; x.fillRect(0, 0, c.width, c.height);
+  return c;
+}
+function glowVersion(src) {
+  const pad = 24, c = document.createElement("canvas"); c.width = src.width + pad * 2; c.height = src.height + pad * 2;
+  const x = c.getContext("2d");
+  const s = document.createElement("canvas"); s.width = src.width; s.height = src.height;
+  const sx = s.getContext("2d"); sx.drawImage(src, 0, 0); sx.globalCompositeOperation = "source-in"; sx.fillStyle = "#fff6a8"; sx.fillRect(0, 0, s.width, s.height);
+  x.filter = "blur(10px)"; x.drawImage(s, pad, pad); x.drawImage(s, pad, pad); x.filter = "none";
+  return { canvas: c, pad };
+}
+function placeholderSprite(name, color) {
+  const c = document.createElement("canvas"); c.width = 300; c.height = 600;
+  const x = c.getContext("2d");
+  x.fillStyle = color; x.strokeStyle = "#222"; x.lineWidth = 8;
+  x.beginPath(); x.arc(150, 120, 95, 0, Math.PI * 2); x.fill(); x.stroke();
+  x.beginPath(); x.roundRect ? x.roundRect(60, 215, 180, 330, 60) : x.rect(60, 215, 180, 330); x.fill(); x.stroke();
+  x.fillStyle = "#222"; x.beginPath(); x.arc(115, 105, 12, 0, 7); x.arc(185, 105, 12, 0, 7); x.fill();
+  x.font = "bold 40px sans-serif"; x.textAlign = "center"; x.fillText(name.slice(0, 10), 150, 400);
+  return c;
+}
+
+// ===================== 3. Vozes (Kokoro no Web Worker) =====================
+const TTS = { worker: null, ready: false, loading: null, failed: false, seq: 0, pending: new Map(), onProgress: null, files: {} };
+function ttsLoad(onProgress) {
+  TTS.onProgress = onProgress;
+  if (TTS.ready) return Promise.resolve();
+  if (TTS.failed) return Promise.reject(new Error(TTS.failReason || "Kokoro indisponível"));
+  if (TTS.loading) return TTS.loading;
+  TTS.loading = new Promise((resolve, reject) => {
+    let w;
+    try {
+      const code = $("ttsWorkerSrc").textContent;
+      w = new Worker(URL.createObjectURL(new Blob([code], { type: "text/javascript" })), { type: "module" });
+    } catch (e) { TTS.failed = true; TTS.failReason = "Web Worker indisponível: " + e.message; reject(new Error(TTS.failReason)); return; }
+    TTS.worker = w;
+    const fail = (why) => {
+      TTS.failed = true; TTS.failReason = why; TTS.loading = null;
+      for (const [, p] of TTS.pending) p.reject(new Error(why));
+      TTS.pending.clear(); reject(new Error(why));
+    };
+    w.onerror = (e) => { e.preventDefault && e.preventDefault(); if (!TTS.ready) fail("não foi possível baixar/iniciar o Kokoro (" + (e.message || "erro de rede") + ")"); };
+    w.onmessage = (e) => {
+      const m = e.data;
+      if (m.type === "progress") {
+        const p = m.p;
+        if (p.file && p.total) TTS.files[p.file] = { loaded: p.loaded || 0, total: p.total };
+        let L = 0, T = 0; for (const k in TTS.files) { L += TTS.files[k].loaded; T += TTS.files[k].total; }
+        if (TTS.onProgress && T) TTS.onProgress(L, T);
+      } else if (m.type === "loaded") { TTS.ready = true; resolve(); }
+      else if (m.type === "loadError") fail(m.error);
+      else if (m.type === "audio" || m.type === "genError") {
+        const p = TTS.pending.get(m.id); if (!p) return; TTS.pending.delete(m.id);
+        m.type === "audio" ? p.resolve({ data: m.data, sr: m.sr }) : p.reject(new Error(m.error));
+      }
+    };
+    w.postMessage({ type: "load" });
+  });
+  return TTS.loading;
+}
+function ttsGenPhon(phonemes, voice, speed) {
+  return new Promise((resolve, reject) => {
+    const id = ++TTS.seq; TTS.pending.set(id, { resolve, reject });
+    TTS.worker.postMessage({ type: "gen", id, phonemes, voice, speed });
+  });
+}
+function splitChunks(text, max = 170) {
+  const parts = text.match(/[^.!?…;]+[.!?…;]*\s*/g) || [text];
+  const out = []; let cur = "";
+  for (let p of parts) {
+    p = p.trim(); if (!p) continue;
+    while (p.length > max) { // frase enorme: corta em vírgula/espaço
+      let cut = p.lastIndexOf(",", max); if (cut < max * 0.4) cut = p.lastIndexOf(" ", max); if (cut < 10) cut = max;
+      if (cur) { out.push(cur); cur = ""; }
+      out.push(p.slice(0, cut + 1).trim()); p = p.slice(cut + 1).trim();
+    }
+    if ((cur + " " + p).length > max && cur) { out.push(cur); cur = p; } else cur = cur ? cur + " " + p : p;
+  }
+  if (cur) out.push(cur);
+  return out.filter((s) => /[A-Za-zÀ-ÿ0-9]/.test(s));
+}
+async function ttsSpeakText(text, voice, speed) {
+  const chunks = splitChunks(text);
+  const bufs = [];
+  let sr = 24000;
+  for (const ch of chunks) {
+    if (S.cancel) throw new Cancelled();
+    const ph = PTG2P.sentence(ch);
+    if (!ph.trim()) continue;
+    const r = await ttsGenPhon(ph, voice, speed);
+    sr = r.sr; bufs.push(trimSilence(r.data, sr));
+  }
+  const gap = Math.round(sr * 0.12);
+  const total = bufs.reduce((a, b) => a + b.length, 0) + gap * Math.max(0, bufs.length - 1);
+  const out = new Float32Array(Math.max(total, 1));
+  let o = 0; bufs.forEach((b, i) => { out.set(b, o); o += b.length + (i < bufs.length - 1 ? gap : 0); });
+  return { data: out, sr };
+}
+function trimSilence(a, sr) {
+  const thr = 0.008; let s = 0, e = a.length - 1;
+  while (s < a.length && Math.abs(a[s]) < thr) s++;
+  while (e > s && Math.abs(a[e]) < thr) e--;
+  s = Math.max(0, s - Math.round(sr * 0.03)); e = Math.min(a.length - 1, e + Math.round(sr * 0.08));
+  return e > s ? a.slice(s, e + 1) : new Float32Array(0);
+}
+function envelopeOf(data, sr) {
+  const hop = sr / FPS, n = Math.ceil(data.length / hop), env = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    let s = 0, c = 0; const a = Math.floor(i * hop), b = Math.min(data.length, Math.floor((i + 1) * hop));
+    for (let k = a; k < b; k++) { s += data[k] * data[k]; c++; }
+    env[i] = c ? Math.sqrt(s / c) : 0;
+  }
+  const sorted = Array.from(env).sort((x, y) => x - y);
+  const ref = sorted[Math.floor(sorted.length * 0.92)] || 1e-3;
+  let prev = 0;
+  for (let i = 0; i < n; i++) { const v = clamp(env[i] / Math.max(ref, 1e-3)); prev = v > prev ? prev + (v - prev) * 0.75 : prev + (v - prev) * 0.45; env[i] = prev; }
+  return env;
+}
+function fakeEnvelope(dur) {
+  const n = Math.ceil(dur * FPS), env = new Float32Array(n);
+  for (let i = 0; i < n; i++) { const t = i / FPS; env[i] = clamp(0.35 + 0.35 * Math.sin(t * 17) * Math.sin(t * 5.3 + 1) + 0.25 * Math.sin(t * 29)); }
+  return env;
+}
+// Web Speech (fallback)
+function webSpeechAvailable() { return "speechSynthesis" in window && typeof SpeechSynthesisUtterance !== "undefined"; }
+function ptVoice() { const vs = speechSynthesis.getVoices(); return vs.find((v) => /pt[-_]BR/i.test(v.lang)) || vs.find((v) => /^pt/i.test(v.lang)) || null; }
+function webSpeak(text, voiceId, speed) {
+  return new Promise((res) => {
+    const u = new SpeechSynthesisUtterance(text); u.lang = "pt-BR"; const v = ptVoice(); if (v) u.voice = v;
+    u.rate = speed; u.pitch = voiceId === "pf_dora" ? 1.25 : voiceId === "pm_santa" ? 0.75 : 1.0;
+    u.onend = u.onerror = () => res(); speechSynthesis.speak(u);
+  });
+}
+
+// ===================== UI: Passo 1 → 2 =====================
+function speedSelect(sel, val) { sel.innerHTML = SPEEDS.map((s) => `<option value="${s}">${s.toFixed(2).replace(".", ",")}x</option>`).join(""); let best = SPEEDS.reduce((a, b) => Math.abs(b - val) < Math.abs(a - val) ? b : a); sel.value = String(best); }
+function voiceSelect(sel, val) { sel.innerHTML = VOICES.map((v) => `<option value="${v.id}">${v.label}</option>`).join(""); sel.value = val; }
+
+function assignVoices(order) {
+  const count = { pf_dora: 0, pm_alex: 0, pm_santa: 0 };
+  count[S.narrator.voice]++;
+  for (const key of order) {
+    const c = S.chars.get(key);
+    if (c.voiceSetByUser) { count[c.voice] = (count[c.voice] || 0) + 1; continue; }
+    const female = looksFemale(c.name);
+    const prefs = female ? ["pf_dora", "pm_alex", "pm_santa"] : ["pm_alex", "pm_santa", "pf_dora"];
+    // voz ainda livre (preferindo o gênero); se todas usadas, repete a preferida variando a velocidade
+    let v = prefs.find((p) => count[p] === 0 && (female ? p === "pf_dora" : p !== "pf_dora"));
+    if (!v) v = prefs[0];
+    c.voice = v; c.speed = SPEED_VARIANTS[count[v] % SPEED_VARIANTS.length]; count[v]++;
+  }
+}
+
+function analyze() {
+  const text = $("story").value.trim() || EXAMPLE;
+  if (!$("story").value.trim()) $("story").value = EXAMPLE;
+  try { localStorage.setItem("df_story", $("story").value); localStorage.setItem("df_style", $("style").value); } catch (_) {}
+  const scenes = parseStory(text);
+  if (!scenes.length) { msg("msg1", "Não encontrei falas nem narração. Cole a história no campo acima.", "err"); return; }
+  msg("msg1", "");
+  const style = $("style").value.trim() || "cartoon 2D colorido, traço limpo, estilo animação infantil";
+  S.style = style;
+  S.scenes = scenes;
+  // personagens
+  const order = [];
+  for (const sc of scenes) for (const ln of sc.lines) if (ln.key && !order.includes(ln.key)) order.push(ln.key);
+  if (order.length > 8) addMsg("msg1", `Encontrei ${order.length} personagens. Muitos personagens deixam a geração lenta; o ideal são até 4–5.`, "warn");
+  const newChars = new Map();
+  order.forEach((key, i) => {
+    let c = S.charCache.get(key);
+    const name = scenes.flatMap((s) => s.lines).find((l) => l.key === key).speaker;
+    if (!c) {
+      c = { key, name, desc: guessDescription(name, text), seed: hashSeed(key + "|v1"), voice: "pf_dora", speed: 1, color: CHAR_COLORS[i % CHAR_COLORS.length], sprite: null, status: "", mouthUser: null, img: null, loadedPrompt: null };
+      S.charCache.set(key, c);
+    }
+    c.name = name; c.color = CHAR_COLORS[i % CHAR_COLORS.length];
+    newChars.set(key, c);
+  });
+  S.chars = newChars; S.charOrder = order;
+  assignVoices(order);
+  // cenários: cada cena com ## ou narração ganha fundo; senão herda o anterior
+  S.bgs = [];
+  let prevBg = null;
+  scenes.forEach((sc, i) => {
+    let loc = sc.location;
+    if (!loc) { const nar = sc.lines.find((l) => !l.key); if (nar) loc = nar.text.slice(0, 140); }
+    if (!loc && prevBg) { sc.bg = prevBg; return; }
+    if (!loc) loc = "um lugar alegre ao ar livre, dia ensolarado";
+    const k = norm(loc);
+    let bg = S.bgCache.get(k);
+    if (!bg) { bg = { key: k, loc, seed: hashSeed(k + "|bg"), img: null, status: "", fmt: null }; S.bgCache.set(k, bg); }
+    if (!S.bgs.includes(bg)) S.bgs.push(bg);
+    sc.bg = bg; prevBg = bg;
+  });
+  scenes.forEach((sc) => {
+    const keys = [];
+    for (const l of sc.lines) if (l.key && !keys.includes(l.key)) keys.push(l.key);
+    if (!keys.length) for (const k of order) { const c = S.chars.get(k); if (new RegExp("\\b" + c.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b", "i").test(sc.lines.map((l) => l.text).join(" "))) keys.push(k); }
+    sc.chars = keys;
+  });
+  buildPreview();
+  $("step2").classList.remove("hidden");
+  $("step2").scrollIntoView({ behavior: "smooth", block: "start" });
+  generateAll();
+}
+
+function buildPreview() {
+  const g = $("charGrid"); g.innerHTML = "";
+  if (!S.charOrder.length) g.innerHTML = `<p class="hint">Nenhum personagem com fala (só narração). Para ter personagens, use linhas “Nome: fala”.</p>`;
+  for (const key of S.charOrder) {
+    const c = S.chars.get(key);
+    const el = document.createElement("div"); el.className = "item"; el.id = "ch_" + cssId(key);
+    el.innerHTML = `<div class="thumb"><div class="st">…</div></div>
+      <div class="name" style="border-left:6px solid ${c.color};padding-left:6px">${esc(c.name)}</div>
+      <input type="text" class="desc" placeholder="aparência (ex.: coelho branco de colete azul)" value="${esc(c.desc)}">
+      <select class="voice"></select><select class="speed"></select>
+      <div class="btns"><button class="sm sec regen">🔄 Outro desenho</button><button class="sm sec test">▶️ Ouvir</button></div>`;
+    g.appendChild(el);
+    voiceSelect(el.querySelector(".voice"), c.voice); speedSelect(el.querySelector(".speed"), c.speed);
+    el.querySelector(".voice").onchange = (e) => { c.voice = e.target.value; c.voiceSetByUser = true; };
+    el.querySelector(".speed").onchange = (e) => { c.speed = +e.target.value; c.voiceSetByUser = true; };
+    el.querySelector(".desc").onchange = (e) => { c.desc = e.target.value.trim(); };
+    el.querySelector(".regen").onclick = () => { c.desc = el.querySelector(".desc").value.trim(); c.seed = randSeed(); c.mouthUser = null; loadChar(c, true); };
+    el.querySelector(".test").onclick = () => testVoice(c.voice, c.speed, `Olá! Eu sou ${c.name}. Vamos começar a nossa história?`, el.querySelector(".test"));
+    el.querySelector(".thumb").onclick = (ev) => setMouth(c, ev);
+    if (c.sprite) showCharThumb(c);
+  }
+  voiceSelect($("narVoice"), S.narrator.voice); speedSelect($("narSpeed"), S.narrator.speed);
+  const b = $("bgGrid"); b.innerHTML = "";
+  S.bgs.forEach((bg, i) => {
+    const el = document.createElement("div"); el.className = "item"; el.id = "bg_" + i;
+    const scenesUsing = S.scenes.map((s, k) => s.bg === bg ? k + 1 : 0).filter(Boolean).join(", ");
+    el.innerHTML = `<div class="thumb bg"><div class="st">…</div></div><div class="name" style="font-size:.85rem">Cena ${scenesUsing}: ${esc(bg.loc.slice(0, 70))}</div>
+      <div class="btns"><button class="sm sec regen">🔄 Outro cenário</button></div>`;
+    b.appendChild(el);
+    el.querySelector(".regen").onclick = () => { bg.seed = randSeed(); loadBg(bg, i, true); };
+    if (bg.img) showBgThumb(bg, i);
+  });
+  updateRenderBtn();
+}
+const cssId = (k) => k.replace(/[^a-z0-9]/gi, "_");
+function charEl(c) { return $("ch_" + cssId(c.key)); }
+function setThumbStatus(el, text) { if (!el) return; const st = el.querySelector(".st"); if (st) { st.textContent = text; st.style.display = text ? "" : "none"; } }
+
+function showCharThumb(c) {
+  const el = charEl(c); if (!el) return;
+  const th = el.querySelector(".thumb");
+  th.querySelectorAll("canvas,.mouthDot").forEach((n) => n.remove());
+  const cv = document.createElement("canvas"); cv.width = c.sprite.width; cv.height = c.sprite.height;
+  cv.getContext("2d").drawImage(c.sprite, 0, 0); th.prepend(cv);
+  requestAnimationFrame(() => {
+    const m = c.mouthUser || c.mouth; const dot = document.createElement("div"); dot.className = "mouthDot";
+    const r = cv.getBoundingClientRect(), tr = th.getBoundingClientRect();
+    dot.style.left = (r.left - tr.left + m.x * r.width) + "px"; dot.style.top = (r.top - tr.top + m.y * r.height) + "px";
+    th.appendChild(dot);
+  });
+}
+function setMouth(c, ev) {
+  const el = charEl(c); const cv = el && el.querySelector(".thumb canvas"); if (!cv || !c.sprite || c.placeholder) return;
+  const r = cv.getBoundingClientRect();
+  const x = (ev.clientX - r.left) / r.width, y = (ev.clientY - r.top) / r.height;
+  if (x < 0 || x > 1 || y < 0 || y > 1) return;
+  c.mouthUser = { x, y, w: (c.mouth && c.mouth.w) || 0.08 };
+  showCharThumb(c);
+}
+function showBgThumb(bg, i) {
+  const el = $("bg_" + i); if (!el) return; const th = el.querySelector(".thumb");
+  th.querySelectorAll("img").forEach((n) => n.remove());
+  const im = new Image(); im.src = bg.img.src; im.crossOrigin = "anonymous"; im.style.objectFit = "cover"; im.style.width = "100%"; im.style.height = "100%"; th.prepend(im);
+}
+
+async function loadChar(c, force) {
+  const prompt = charPrompt(c, S.style);
+  const sig = prompt + "|" + c.seed;
+  if (!force && c.sprite && c.loadedPrompt === sig) { showCharThumb(c); setThumbStatus(charEl(c), ""); return; }
+  const token = (c.loadToken = (c.loadToken || 0) + 1);
+  c.status = "loading"; c.sprite = null; c.placeholder = false; updateRenderBtn();
+  const el = charEl(c); if (el) { el.querySelectorAll(".thumb canvas,.mouthDot").forEach((n) => n.remove()); }
+  setThumbStatus(charEl(c), "na fila…");
+  try {
+    const img = await enqueue(() => loadWithRetry((a) => pollUrl(prompt, 512, 768, c.seed, a), (t) => setThumbStatus(charEl(c), t)));
+    if (token !== c.loadToken) return;
+    const k = keyOut(img);
+    c.img = img; c.sprite = k.canvas; c.mouth = k.mouth; c.dark = darkVersion(k.canvas); c.glow = glowVersion(k.canvas);
+    c.loadedPrompt = sig; c.status = "ok";
+    showCharThumb(c);
+    setThumbStatus(charEl(c), k.ok ? "" : "⚠️ fundo não saiu liso – tente 🔄");
+  } catch (e) {
+    if (token !== c.loadToken) return;
+    c.status = "fail"; c.sprite = placeholderSprite(c.name, c.color); c.placeholder = true; c.mouth = { x: 0.5, y: 0.26, w: 0.12 };
+    c.dark = darkVersion(c.sprite); c.glow = glowVersion(c.sprite);
+    showCharThumb(c);
+    setThumbStatus(charEl(c), "❌ " + e.message + " – toque 🔄");
+  }
+  updateRenderBtn();
+}
+async function loadBg(bg, i, force) {
+  const fmt = $("format").value, [w, h] = BG_SIZE[fmt];
+  const prompt = bgPrompt(bg.loc, S.style), sig = prompt + "|" + bg.seed + "|" + fmt;
+  if (!force && bg.img && bg.sig === sig) { showBgThumb(bg, i); setThumbStatus($("bg_" + i), ""); return; }
+  const token = (bg.loadToken = (bg.loadToken || 0) + 1);
+  bg.status = "loading"; bg.img = null; updateRenderBtn();
+  const el = $("bg_" + i); if (el) el.querySelectorAll(".thumb img").forEach((n) => n.remove());
+  setThumbStatus($("bg_" + i), "na fila…");
+  try {
+    const img = await enqueue(() => loadWithRetry((a) => pollUrl(prompt, w, h, bg.seed, a), (t) => setThumbStatus($("bg_" + i), t)));
+    if (token !== bg.loadToken) return;
+    bg.img = img; bg.sig = sig; bg.status = "ok"; showBgThumb(bg, i); setThumbStatus($("bg_" + i), "");
+  } catch (e) {
+    if (token !== bg.loadToken) return;
+    bg.status = "fail"; bg.img = null; setThumbStatus($("bg_" + i), "❌ " + e.message + " – toque 🔄 (usarei um fundo simples)");
+  }
+  updateRenderBtn();
+}
+function generateAll() {
+  msg("msg2", "Gerando desenhos no Pollinations.ai (grátis). Cada imagem pode levar de 10 s a 2 min…", "info");
+  S.charOrder.forEach((k) => loadChar(S.chars.get(k), false));
+  S.bgs.forEach((bg, i) => loadBg(bg, i, false));
+}
+function updateRenderBtn() {
+  const cs = S.charOrder.map((k) => S.chars.get(k));
+  const loading = cs.some((c) => c.status === "loading") || S.bgs.some((b) => b.status === "loading");
+  const fails = cs.filter((c) => c.status === "fail").length + S.bgs.filter((b) => b.status === "fail").length;
+  const btn = $("btnRender");
+  btn.disabled = loading || S.busy;
+  if (!$("step2").classList.contains("hidden")) {
+    if (loading) { /* mensagem já mostrada */ }
+    else if (fails) msg("msg2", `${fails} imagem(ns) falharam (o servidor gratuito pode estar lento). Toque em 🔄 para tentar de novo, ou gere o vídeo assim mesmo (uso desenho/fundo simples).`, "warn");
+    else msg("msg2", "Tudo pronto! Ajuste vozes se quiser e toque em <b>Gerar vídeo</b>.", "ok");
+  }
+}
+async function testVoice(voice, speed, text, btn) {
+  if (btn) btn.disabled = true;
+  const old = btn ? btn.textContent : "";
+  try {
+    if (S.ttsMode === "kokoro" && !TTS.failed) {
+      if (btn) btn.textContent = "⏳ baixando voz…";
+      await ttsLoad((L, T) => { if (btn) btn.textContent = `⏳ ${Math.round(L / 1e6)}/${Math.round(T / 1e6)} MB`; });
+      if (btn) btn.textContent = "⏳ gerando…";
+      const r = await ttsSpeakText(text, voice, speed);
+      await playPcm(r.data, r.sr);
+    } else if (webSpeechAvailable()) { await webSpeak(text, voice, speed); }
+  } catch (e) {
+    if (!(e instanceof Cancelled)) { kokoroFailed(e); if (webSpeechAvailable()) await webSpeak(text, voice, speed); }
+  } finally { if (btn) { btn.disabled = false; btn.textContent = old; } }
+}
+let _ac = null;
+function audioCtx() { if (!_ac) _ac = new (window.AudioContext || window.webkitAudioContext)(); if (_ac.state === "suspended") _ac.resume(); return _ac; }
+function playPcm(data, sr) {
+  return new Promise((res) => {
+    const ac = audioCtx(); const b = ac.createBuffer(1, data.length, sr); b.copyToChannel(data, 0);
+    const s = ac.createBufferSource(); s.buffer = b; s.connect(ac.destination); s.onended = res; s.start();
+  });
+}
+function kokoroFailed(e) {
+  if (S.ttsMode === "webspeech") return;
+  S.ttsMode = "webspeech";
+  const why = esc(e && e.message ? e.message : String(e));
+  const txt = `A voz Kokoro não funcionou neste aparelho (${why}). Usando a <b>voz do navegador</b> como alternativa: ela não pode ser gravada dentro do MP4, então o vídeo sairá <b>sem áudio</b> (com boca animada e legendas). Use “Assistir com voz do navegador” para ver com som, ou tente em outro navegador/aparelho.`;
+  addMsg("msg2", txt, "warn"); addMsg("msg3", txt, "warn");
+}
+
+// ===================== 4. Linha do tempo =====================
+async function buildTimeline(target, onProg) {
+  const all = [];
+  S.scenes.forEach((sc, si) => sc.lines.forEach((ln) => all.push({ sc, si, ln })));
+  const items = [];
+  let done = 0;
+  for (const { si, ln } of all) {
+    if (S.cancel) throw new Cancelled();
+    const c = ln.key ? S.chars.get(ln.key) : null;
+    const voice = c ? c.voice : S.narrator.voice, speed = c ? c.speed : S.narrator.speed;
+    let pcm = null, sr = 24000, dur, env;
+    if (S.ttsMode === "kokoro") {
+      try {
+        const r = await ttsSpeakText(ln.text, voice, speed);
+        pcm = r.data; sr = r.sr; dur = pcm.length / sr; env = envelopeOf(pcm, sr);
+        if (dur < 0.2) { dur = Math.max(0.8, ln.text.length / 14); env = fakeEnvelope(dur); pcm = null; }
+      } catch (e) {
+        if (e instanceof Cancelled) throw e;
+        if (!TTS.ready) kokoroFailed(e);
+        else { console.warn("fala falhou", e); if (!S._lineWarn) { S._lineWarn = true; addMsg("msg3", "Uma ou mais falas não puderam ser geradas pela voz Kokoro e ficaram sem som (só legenda): " + esc(e.message), "warn"); } }
+      }
+    }
+    if (dur == null) { dur = Math.max(1, ln.text.length / (14 * speed)) + 0.2; env = fakeEnvelope(dur); pcm = null; }
+    items.push({ si, key: ln.key, text: ln.text, speaker: c ? c.name : "Narrador", color: c ? c.color : "#dddddd", pcm, sr, dur, env, voice, speed });
+    done++; onProg(done, all.length);
+  }
+  // pausas
+  const nL = items.length, nS = S.scenes.length;
+  let gap = 0.35, h0 = 0.6, h1 = 0.6;
+  const speech = items.reduce((a, b) => a + b.dur, 0);
+  const G = nL - nS; // pausas entre falas dentro das cenas
+  const base = speech + G * gap + nS * (h0 + h1) + 0.6;
+  let warn = null;
+  if (target > 0) {
+    const extra = target - base;
+    if (extra > 0) {
+      if (G > 0) { gap += (extra * 0.45) / G; h0 += (extra * 0.275) / nS; h1 += (extra * 0.275) / nS; }
+      else { h0 += (extra * 0.5) / nS; h1 += (extra * 0.5) / nS; }
+    }
+    else warn = `A fala ocupa ${Math.round(base)} s, mais que ${target} s. O vídeo ficou com ${Math.round(base)} s (encurte a história para caber).`;
+  }
+  const scenes = []; let t = 0;
+  for (let si = 0; si < nS; si++) {
+    const st = t; t += h0;
+    const lines = [];
+    const its = items.filter((x) => x.si === si);
+    its.forEach((it, k) => { it.start = t; it.end = t + it.dur; lines.push(it); t = it.end + (k < its.length - 1 ? gap : 0); });
+    t += h1;
+    if (si === nS - 1) t += 0.6;
+    scenes.push({ si, start: st, end: t, lines, sc: S.scenes[si] });
+  }
+  return { scenes, items, T: t, warn };
+}
+function mixAudio(tl) {
+  const N = Math.ceil(tl.T * SR_OUT) + SR_OUT / 10, out = new Float32Array(N);
+  let any = false;
+  for (const it of tl.items) {
+    if (!it.pcm) continue; any = true;
+    const ratio = it.sr / SR_OUT, off = Math.round(it.start * SR_OUT), len = Math.floor(it.pcm.length / ratio);
+    for (let i = 0; i < len && off + i < N; i++) {
+      const x = i * ratio, i0 = Math.floor(x), f = x - i0, a = it.pcm[i0], b = it.pcm[Math.min(i0 + 1, it.pcm.length - 1)];
+      out[off + i] += a + (b - a) * f;
+    }
+  }
+  let peak = 0; for (let i = 0; i < N; i++) peak = Math.max(peak, Math.abs(out[i]));
+  if (peak > 0) { const g = Math.min(4, 0.95 / peak); for (let i = 0; i < N; i++) out[i] *= g; }
+  return any ? out : null;
+}
+
+// ===================== 5. Desenho dos quadros =====================
+function coverDraw(ctx, img, W, H, zoom, panX, panY) {
+  const iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
+  const s = Math.max(W / iw, H / ih) * zoom, dw = iw * s, dh = ih * s;
+  const maxPX = (dw - W) / 2, maxPY = (dh - H) / 2;
+  ctx.drawImage(img, (W - dw) / 2 + panX * maxPX, (H - dh) / 2 + panY * maxPY, dw, dh);
+}
+function fallbackBg(ctx, W, H, si) {
+  const hues = [200, 140, 30, 280, 350, 90]; const hue = hues[si % hues.length];
+  const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, `hsl(${hue},70%,78%)`); g.addColorStop(0.65, `hsl(${hue},55%,88%)`); g.addColorStop(0.66, `hsl(${(hue + 60) % 360},45%,62%)`); g.addColorStop(1, `hsl(${(hue + 60) % 360},45%,48%)`);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+}
+function wrapText(ctx, text, maxW) {
+  const words = text.split(/\s+/), lines = []; let cur = "";
+  for (const w of words) { const t = cur ? cur + " " + w : w; if (ctx.measureText(t).width > maxW && cur) { lines.push(cur); cur = w; } else cur = t; }
+  if (cur) lines.push(cur); return lines;
+}
+function lineAt(sc, t) { for (const l of sc.lines) if (t >= l.start && t < l.end) return l; return null; }
+function drawFrame(ctx, tl, t, W, H, opts) {
+  let sc = tl.scenes[tl.scenes.length - 1];
+  for (const s of tl.scenes) if (t >= s.start && t < s.end) { sc = s; break; }
+  const local = clamp((t - sc.start) / Math.max(0.01, sc.end - sc.start));
+  const bg = sc.sc.bg;
+  // fundo com pan/zoom suave
+  ctx.fillStyle = "#000"; ctx.fillRect(0, 0, W, H);
+  const dir = sc.si % 2 ? -1 : 1;
+  if (bg && bg.img) coverDraw(ctx, bg.img, W, H, 1.06 + 0.1 * smooth(local), dir * (smooth(local) * 1.4 - 0.7), 0.25 - 0.3 * smooth(local));
+  else fallbackBg(ctx, W, H, sc.si);
+  // personagens
+  const cur = lineAt(sc, t);
+  let keys = sc.sc.chars.slice();
+  if (keys.length > 4) { keys = keys.slice(0, 4); if (cur && cur.key && !keys.includes(cur.key)) keys[3] = cur.key; }
+  const n = keys.length;
+  const portrait = H / W;
+  const baseH = H * (portrait > 1.5 ? 0.54 : portrait > 1.1 ? 0.6 : portrait > 0.9 ? 0.62 : 0.72);
+  const slotW = W / Math.max(1, n);
+  const groundY = H * (!opts.subs ? 0.95 : portrait > 1.5 ? 0.83 : portrait > 1.1 ? 0.88 : 0.93);
+  const someoneSpeaking = cur && cur.key;
+  keys.forEach((key, k) => {
+    const c = S.chars.get(key); if (!c || !c.sprite) return;
+    // peso de fala (0..1) com rampas suaves
+    let w = 0, amp = 0;
+    for (const l of sc.lines) {
+      if (l.key !== key) continue;
+      const a = clamp((t - (l.start - 0.25)) / 0.25), b = clamp(((l.end + 0.25) - t) / 0.25);
+      const ww = Math.min(a, b); if (ww > w) w = ww;
+      if (t >= l.start && t < l.end) { const fi = Math.floor((t - l.start) * FPS); amp = l.env[Math.min(fi, l.env.length - 1)] || 0; }
+    }
+    w = smooth(w);
+    const sp = c.sprite;
+    let h = baseH, sw = sp.width * (h / sp.height);
+    if (sw > slotW * 0.95) { sw = slotW * 0.95; h = sp.height * (sw / sp.width); }
+    const phase = k * 1.7;
+    const breath = Math.sin((t * 2 * Math.PI) / 2.8 + phase);
+    const scale = 1 + 0.09 * w;
+    const sy = scale * (1 + 0.012 * breath + 0.035 * amp * w);
+    const sx = scale * (1 - 0.006 * breath - 0.012 * amp * w);
+    const cx = slotW * (k + 0.5), hop = -H * 0.012 * amp * w;
+    // sombra no chão
+    ctx.save(); ctx.globalAlpha = 0.28; ctx.fillStyle = "#000"; ctx.beginPath(); ctx.ellipse(cx, groundY, sw * 0.38 * sx, H * 0.014, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+    ctx.save();
+    ctx.translate(cx, groundY + hop); ctx.scale(sx, sy);
+    const dx = -sw / 2, dy = -h;
+    if (w > 0.01 && c.glow) { ctx.globalAlpha = 0.9 * w; const gpad = c.glow.pad * (sw / sp.width); ctx.drawImage(c.glow.canvas, dx - gpad, dy - gpad, sw + 2 * gpad, h + 2 * gpad); ctx.globalAlpha = 1; }
+    ctx.drawImage(sp, dx, dy, sw, h);
+    const dim = someoneSpeaking ? 1 - w : 0;
+    if (dim > 0.01 && c.dark) { ctx.globalAlpha = dim * 0.9; ctx.drawImage(c.dark, dx, dy, sw, h); ctx.globalAlpha = 1; }
+    // boca animada
+    const m = c.mouthUser || c.mouth;
+    if (m && amp > 0.06 && w > 0.3) {
+      const mx = dx + m.x * sw, my = dy + m.y * h, mw = Math.max(6, m.w * sw);
+      const open = clamp(amp);
+      const rx = mw * (0.42 + 0.14 * open), ry = mw * (0.08 + 0.36 * open);
+      ctx.fillStyle = "#3b0a12"; ctx.strokeStyle = "#1c0508"; ctx.lineWidth = Math.max(1.5, mw * 0.08);
+      ctx.beginPath(); ctx.ellipse(mx, my, rx, ry, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      if (ry > mw * 0.16) { ctx.save(); ctx.beginPath(); ctx.ellipse(mx, my, rx, ry, 0, 0, Math.PI * 2); ctx.clip(); ctx.fillStyle = "#e8586e"; ctx.beginPath(); ctx.ellipse(mx, my + ry * 0.75, rx * 0.7, ry * 0.55, 0, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = "#fff"; ctx.fillRect(mx - rx * 0.6, my - ry, rx * 1.2, ry * 0.28); ctx.restore(); }
+    }
+    ctx.restore();
+  });
+  const U = Math.min(W, H);
+  // nome do lugar no início da cena
+  if (sc.sc.location && t - sc.start < 2.4) {
+    const a = clamp((t - sc.start) / 0.4) * clamp((sc.start + 2.4 - t) / 0.5);
+    ctx.save(); ctx.globalAlpha = a; ctx.font = `600 ${Math.round(U * 0.036)}px system-ui,sans-serif`;
+    const txt = "📍 " + sc.sc.location.slice(0, 48); const tw = ctx.measureText(txt).width;
+    ctx.fillStyle = "rgba(0,0,0,.55)"; roundRect(ctx, U * 0.04, U * 0.05, tw + U * 0.05, U * 0.07, U * 0.02); ctx.fill();
+    ctx.fillStyle = "#fff"; ctx.textBaseline = "middle"; ctx.fillText(txt, U * 0.065, U * 0.085); ctx.restore();
+  }
+  // legendas
+  if (opts.subs) {
+    let ln = cur;
+    if (!ln) for (const l of sc.lines) if (t >= l.end && t < l.end + 0.3) ln = l;
+    if (ln) {
+      const fs = Math.round(U * (portrait > 1.1 ? 0.047 : 0.042));
+      ctx.save(); ctx.font = `700 ${fs}px system-ui,sans-serif`;
+      const maxW = W * 0.86; let lines = wrapText(ctx, ln.text, maxW), f2 = fs;
+      while (lines.length > 3 && f2 > fs * 0.6) { f2 = Math.round(f2 * 0.9); ctx.font = `700 ${f2}px system-ui,sans-serif`; lines = wrapText(ctx, ln.text, maxW); }
+      if (lines.length > 4) { lines = lines.slice(0, 4); lines[3] = lines[3].replace(/\s*\S*$/, "") + "…"; }
+      const lh = f2 * 1.22, nameH = f2 * 1.05, padY = f2 * 0.45;
+      const boxH = nameH + lines.length * lh + padY * 2, boxY = H - boxH - H * 0.035, boxX = (W - maxW) / 2 - W * 0.03;
+      ctx.fillStyle = "rgba(10,6,25,.72)"; roundRect(ctx, boxX, boxY, maxW + W * 0.06, boxH, f2 * 0.5); ctx.fill();
+      ctx.textBaseline = "top"; ctx.textAlign = "center";
+      ctx.font = `${ln.key ? "800" : "italic 700"} ${Math.round(f2 * 0.8)}px system-ui,sans-serif`; ctx.fillStyle = ln.color;
+      ctx.fillText(ln.speaker, W / 2, boxY + padY);
+      ctx.font = `700 ${f2}px system-ui,sans-serif`; ctx.fillStyle = "#fff";
+      lines.forEach((s, i) => ctx.fillText(s, W / 2, boxY + padY + nameH + i * lh));
+      ctx.restore();
+    }
+  }
+  // transições (fade)
+  const fin = sc.si === 0 ? 1 : clamp((t - sc.start) / 0.35), fout = clamp((sc.end - t) / 0.35);
+  const fade = 1 - Math.min(fin, fout);
+  if (fade > 0.001) { ctx.fillStyle = `rgba(0,0,0,${fade})`; ctx.fillRect(0, 0, W, H); }
+}
+function roundRect(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+
+// ===================== 6. Exportação =====================
+async function pickVideoConfig(W, H) {
+  if (!("VideoEncoder" in window)) return null;
+  const br = Math.round(W * H * FPS * 0.13);
+  for (const codec of ["avc1.640028", "avc1.4d0028", "avc1.42e028", "avc1.42e01f", "avc1.42001f"]) {
+    for (const hw of ["prefer-hardware", "no-preference", "prefer-software"]) {
+      const cfg = { codec, width: W, height: H, bitrate: br, framerate: FPS, hardwareAcceleration: hw, avc: { format: "avc" } };
+      try { const s = await VideoEncoder.isConfigSupported(cfg); if (s.supported) return cfg; } catch (_) {}
+    }
+  }
+  return null;
+}
+async function pickAudioConfig() {
+  if (!("AudioEncoder" in window)) return null;
+  for (const [codec, mux] of [["mp4a.40.2", "aac"], ["opus", "opus"]]) {
+    const cfg = { codec, sampleRate: SR_OUT, numberOfChannels: 1, bitrate: 128000 };
+    try { const s = await AudioEncoder.isConfigSupported(cfg); if (s.supported) return { cfg, mux }; } catch (_) {}
+  }
+  return null;
+}
+async function exportWebCodecs(tl, pcm, W, H, vcfg, onProg) {
+  const { Muxer, ArrayBufferTarget } = await import(MP4MUXER_URL);
+  const acfg = pcm ? await pickAudioConfig() : null;
+  const target = new ArrayBufferTarget();
+  const muxer = new Muxer({
+    target, fastStart: "in-memory", firstTimestampBehavior: "offset",
+    video: { codec: "avc", width: W, height: H, frameRate: FPS },
+    audio: acfg ? { codec: acfg.mux, numberOfChannels: 1, sampleRate: SR_OUT } : undefined
+  });
+  let encErr = null;
+  if (acfg) {
+    const aenc = new AudioEncoder({ output: (c, m) => muxer.addAudioChunk(c, m), error: (e) => { encErr = e; } });
+    aenc.configure(acfg.cfg);
+    const CH = 4800;
+    for (let i = 0; i < pcm.length; i += CH) {
+      const len = Math.min(CH, pcm.length - i);
+      const ad = new AudioData({ format: "f32-planar", sampleRate: SR_OUT, numberOfFrames: len, numberOfChannels: 1, timestamp: Math.round((i / SR_OUT) * 1e6), data: pcm.slice(i, i + len) });
+      aenc.encode(ad); ad.close();
+      if (aenc.encodeQueueSize > 50) await sleep(1);
+    }
+    await aenc.flush(); aenc.close();
+    if (encErr) throw encErr;
+  }
+  const venc = new VideoEncoder({ output: (c, m) => muxer.addVideoChunk(c, m), error: (e) => { encErr = e; } });
+  venc.configure(vcfg);
+  const cv = $("live"); cv.width = W; cv.height = H;
+  const ctx = cv.getContext("2d");
+  const nFrames = Math.ceil(tl.T * FPS);
+  const opts = { subs: $("subs").checked };
+  for (let i = 0; i < nFrames; i++) {
+    if (S.cancel) { try { venc.close(); } catch (_) {} throw new Cancelled(); }
+    if (encErr) throw encErr;
+    drawFrame(ctx, tl, i / FPS, W, H, opts);
+    const vf = new VideoFrame(cv, { timestamp: Math.round((i * 1e6) / FPS), duration: Math.round(1e6 / FPS) });
+    venc.encode(vf, { keyFrame: i % (FPS * 2) === 0 });
+    vf.close();
+    while (venc.encodeQueueSize > 6) { await sleep(4); if (encErr) throw encErr; }
+    if (i % 6 === 0) { onProg(i / nFrames); await sleep(0); }
+  }
+  await venc.flush(); venc.close();
+  if (encErr) throw encErr;
+  muxer.finalize();
+  return { blob: new Blob([target.buffer], { type: "video/mp4" }), ext: "mp4", audio: acfg ? acfg.mux : null };
+}
+async function exportMediaRecorder(tl, pcm, W, H, onProg) {
+  const cv = $("live"); cv.width = W; cv.height = H; const ctx = cv.getContext("2d");
+  const opts = { subs: $("subs").checked };
+  const stream = cv.captureStream(FPS);
+  const ac = audioCtx();
+  let src = null;
+  if (pcm) {
+    const buf = ac.createBuffer(1, pcm.length, SR_OUT); buf.copyToChannel(pcm, 0);
+    src = ac.createBufferSource(); src.buffer = buf; const dest = ac.createMediaStreamDestination(); src.connect(dest);
+    dest.stream.getAudioTracks().forEach((tr) => stream.addTrack(tr));
+  }
+  const mime = ["video/mp4;codecs=avc1,mp4a.40.2", "video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm", "video/mp4"].find((m) => window.MediaRecorder && MediaRecorder.isTypeSupported(m));
+  if (!mime) throw new Error("este navegador não consegue gravar vídeo (sem WebCodecs e sem MediaRecorder)");
+  const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 4e6 });
+  const chunks = []; rec.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
+  const stopped = new Promise((r) => { rec.onstop = r; });
+  drawFrame(ctx, tl, 0, W, H, opts);
+  rec.start(500);
+  const t0 = ac.currentTime + 0.1; if (src) src.start(t0);
+  await new Promise((resolve, reject) => {
+    const tick = () => {
+      if (S.cancel) { try { src && src.stop(); } catch (_) {} rec.stop(); reject(new Cancelled()); return; }
+      const t = ac.currentTime - t0;
+      drawFrame(ctx, tl, Math.max(0, t), W, H, opts); onProg(clamp(t / tl.T));
+      if (t >= tl.T) resolve(); else requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
+  rec.stop(); await stopped;
+  const type = mime.split(";")[0];
+  return { blob: new Blob(chunks, { type }), ext: type === "video/mp4" ? "mp4" : "webm", audio: pcm ? "mr" : null };
+}
+
+// ===================== Fluxo de renderização =====================
+function setStage(n, text, frac) {
+  document.querySelectorAll("#stages span").forEach((s) => { const k = +s.dataset.s; s.className = k < n ? "done" : k === n ? "on" : ""; });
+  $("stageTxt").textContent = text;
+  if (frac != null) $("progBar").style.width = (clamp(frac) * 100).toFixed(1) + "%";
+}
+let wakeLock = null;
+async function render() {
+  if (S.busy) return;
+  S.busy = true; S.cancel = false; S._lineWarn = false; updateRenderBtn();
+  $("step3").classList.remove("hidden"); $("result").classList.add("hidden"); $("btnCancel").classList.remove("hidden");
+  msg("msg3", ""); $("step3").scrollIntoView({ behavior: "smooth", block: "start" });
+  try { wakeLock = await navigator.wakeLock?.request("screen"); } catch (_) {}
+  const fmt = $("format").value, [W, H] = FORMATS[fmt];
+  const target = +$("duration").value;
+  try {
+    // cenários no formato certo? (se o formato mudou, o recorte "cover" resolve)
+    setStage(1, "Carregando modelo de voz Kokoro…", 0);
+    if (S.ttsMode === "kokoro") {
+      try {
+        await ttsLoad((L, T) => setStage(1, `Baixando modelo de voz: ${(L / 1e6).toFixed(0)} de ${(T / 1e6).toFixed(0)} MB (só na primeira vez)`, (L / T) * 0.15));
+      } catch (e) { kokoroFailed(e); }
+    }
+    if (S.cancel) throw new Cancelled();
+    setStage(2, "Gerando vozes…", 0.15);
+    const tl = await buildTimeline(target, (d, n) => setStage(2, `Gerando vozes: fala ${d} de ${n}${S.ttsMode === "kokoro" ? "" : " (voz do navegador)"}`, 0.15 + 0.35 * (d / n)));
+    S.timeline = tl;
+    if (tl.warn) addMsg("msg3", tl.warn, "warn");
+    const pcm = S.ttsMode === "kokoro" ? mixAudio(tl) : null;
+    const vcfg = await pickVideoConfig(W, H);
+    let res;
+    const t0 = performance.now();
+    if (vcfg) {
+      setStage(3, "Animando e codificando MP4…", 0.5);
+      res = await exportWebCodecs(tl, pcm, W, H, vcfg, (f) => {
+        const el = (performance.now() - t0) / 1000, eta = f > 0.03 ? Math.round(el / f - el) : null;
+        setStage(3, `Animando e codificando MP4: ${Math.round(f * 100)}%${eta != null ? ` (faltam ~${eta}s)` : ""}`, 0.5 + 0.47 * f);
+      });
+    } else {
+      addMsg("msg3", "Seu navegador não tem WebCodecs (codificador de vídeo). Vou gravar em tempo real com MediaRecorder: o arquivo sai em <b>WebM</b> (algumas redes pedem conversão para MP4). Mantenha a tela ligada e este app aberto até terminar.", "warn");
+      setStage(3, "Gravando em tempo real (WebM)…", 0.5);
+      res = await exportMediaRecorder(tl, pcm, W, H, (f) => setStage(3, `Gravando em tempo real: ${Math.round(f * 100)}%`, 0.5 + 0.47 * f));
+    }
+    setStage(4, "Finalizando…", 0.98);
+    showResult(res, tl, W, H);
+    setStage(5, "Pronto! 🎉", 1);
+  } catch (e) {
+    if (e instanceof Cancelled) { setStage(0, "Cancelado.", 0); }
+    else { console.error(e); addMsg("msg3", "Erro ao gerar o vídeo: " + esc(e.message || String(e)) + ". Tente de novo; se persistir, escolha outro formato ou diminua a história.", "err"); setStage(0, "Falhou.", 0); }
+  } finally {
+    S.busy = false; updateRenderBtn(); $("btnCancel").classList.add("hidden");
+    $("btnLive").classList.toggle("hidden", !(S.ttsMode !== "kokoro" && S.timeline && webSpeechAvailable()));
+    try { wakeLock && wakeLock.release(); } catch (_) {} wakeLock = null;
+  }
+}
+function showResult(res, tl, W, H) {
+  if (S.lastVideo) URL.revokeObjectURL(S.lastVideo.url);
+  const url = URL.createObjectURL(res.blob);
+  const d = new Date(), p2 = (n) => String(n).padStart(2, "0");
+  const name = `desenho-${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}-${p2(d.getHours())}${p2(d.getMinutes())}.${res.ext}`;
+  S.lastVideo = { url, blob: res.blob, name };
+  $("outVideo").src = url; $("result").classList.remove("hidden");
+  const mb = (res.blob.size / 1e6).toFixed(1);
+  let info = `${W}×${H}, ${Math.round(tl.T)} s, ${mb} MB, ${res.ext.toUpperCase()}`;
+  if (res.audio === "aac") info += " (H.264 + AAC).";
+  else if (res.audio === "opus") info += " (H.264 + áudio Opus: este navegador não tem codificador AAC; toca no Android/Chrome, mas algumas redes podem recusar — no celular Android normalmente sai AAC).";
+  else if (!res.audio) info += " — sem áudio" + (S.ttsMode !== "kokoro" ? " (voz do navegador não pode ser gravada)." : ".");
+  else info += ".";
+  $("resultInfo").textContent = info;
+  const canShareFiles = (() => { try { return !!(navigator.canShare && navigator.canShare({ files: [new File([res.blob], name, { type: res.blob.type })] })); } catch (_) { return false; } })();
+  $("btnShare").classList.toggle("hidden", !canShareFiles);
+}
+function download() {
+  const v = S.lastVideo; if (!v) return;
+  const a = document.createElement("a"); a.href = v.url; a.download = v.name; document.body.appendChild(a); a.click(); a.remove();
+}
+async function share() {
+  const v = S.lastVideo; if (!v) return;
+  const file = new File([v.blob], v.name, { type: v.blob.type });
+  try { await navigator.share({ files: [file], title: "Meu desenho animado", text: "Feito com Desenho Falante 🎬" }); }
+  catch (e) { if (e && e.name !== "AbortError") addMsg("msg3", "Não foi possível compartilhar: " + esc(e.message) + ". Use Baixar.", "warn"); }
+}
+async function playLive() {
+  const tl = S.timeline; if (!tl) return;
+  const fmt = $("format").value, [W, H] = FORMATS[fmt];
+  const cv = $("live"); cv.width = W; cv.height = H; const ctx = cv.getContext("2d");
+  speechSynthesis.cancel(); S.cancel = false;
+  const spoken = new Set(); const t0 = performance.now();
+  const opts = { subs: $("subs").checked };
+  $("btnLive").disabled = true;
+  await new Promise((res) => {
+    const tick = () => {
+      const t = (performance.now() - t0) / 1000;
+      for (const it of tl.items) if (t >= it.start && !spoken.has(it)) { spoken.add(it); webSpeak(it.text, it.voice, it.speed); }
+      drawFrame(ctx, tl, Math.min(t, tl.T), W, H, opts);
+      if (t < tl.T && !S.cancel) requestAnimationFrame(tick); else res();
+    };
+    requestAnimationFrame(tick);
+  });
+  $("btnLive").disabled = false;
+}
+
+// ===================== Inicialização =====================
+function checkEnv() {
+  const notes = [];
+  if (!("VideoEncoder" in window)) notes.push("Seu navegador não tem WebCodecs: o vídeo será gravado em tempo real como WebM (use o Chrome atualizado para MP4).");
+  if (!window.Worker || !window.WebAssembly) notes.push("Seu navegador não suporta WebAssembly/Workers: a voz Kokoro não vai rodar; usarei a voz do navegador (sem áudio no arquivo).");
+  if (notes.length) $("envMsg").innerHTML = notes.map((n) => `<div class="msg warn">${n}</div>`).join("");
+}
+function init() {
+  $("story").placeholder = EXAMPLE;
+  try { const s = localStorage.getItem("df_story"); if (s) $("story").value = s; const st = localStorage.getItem("df_style"); if (st) $("style").value = st; } catch (_) {}
+  $("btnAnalyze").onclick = analyze;
+  $("btnRender").onclick = render;
+  $("btnCancel").onclick = () => { S.cancel = true; try { speechSynthesis.cancel(); } catch (_) {} };
+  $("btnDownload").onclick = download;
+  $("btnShare").onclick = share;
+  $("btnLive").onclick = playLive;
+  $("narVoice").onchange = (e) => { S.narrator.voice = e.target.value; };
+  $("narSpeed").onchange = (e) => { S.narrator.speed = +e.target.value; };
+  $("narTest").onclick = () => testVoice(S.narrator.voice, S.narrator.speed, "Era uma vez, numa terra muito distante, uma história incrível.", $("narTest"));
+  $("format").onchange = () => { if (!$("step2").classList.contains("hidden")) S.bgs.forEach((bg, i) => loadBg(bg, i, false)); };
+  $("style").onchange = () => { try { localStorage.setItem("df_style", $("style").value); } catch (_) {} };
+  voiceSelect($("narVoice"), S.narrator.voice); speedSelect($("narSpeed"), S.narrator.speed);
+  if (webSpeechAvailable()) { try { speechSynthesis.getVoices(); } catch (_) {} }
+  checkEnv();
+}
+init();
+// Exposto para testes automatizados
+window.__DF = { S, parseStory, PTG2P, buildTimeline, mixAudio, drawFrame, exportWebCodecs, pickVideoConfig, pickAudioConfig, keyOut, ttsLoad, ttsSpeakText, analyze, render, splitChunks };
+
+</script>
+</body>
+</html>
