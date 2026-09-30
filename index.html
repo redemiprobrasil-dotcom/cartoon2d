@@ -73,7 +73,7 @@ footer a{color:var(--pri)}
   <section class="card" id="step1">
     <h2>1. Sua história</h2>
     <textarea id="story" spellcheck="true"></textarea>
-    <p class="hint">Formato: <b>Nome: fala</b> = diálogo. <b>Narrador: …</b> ou linha comum = narração. Linha em branco ou <b>## Lugar</b> = nova cena (o texto depois de ## vira o cenário). Dica: “Pipo, um coelho branco de colete azul, …” ajuda a desenhar o personagem.</p>
+    <p class="hint">Cole uma história normal, em texto corrido. A IA transforma em roteiro com <b>diálogos</b>, cria os personagens, cenários e vozes e monta o vídeo — tudo com um toque. Dica: descrever os personagens (“Pipo, um coelho branco de colete azul”) deixa o desenho mais fiel. Se você já tiver um roteiro no formato <b>Nome: fala</b> (e <b>## Lugar</b> para cenas), ele é usado do jeito que está.</p>
     <label for="style">Estilo visual</label>
     <input type="text" id="style" value="cartoon 2D colorido, traço limpo, estilo animação infantil">
     <div class="row">
@@ -98,12 +98,13 @@ footer a{color:var(--pri)}
       </div>
     </div>
     <label class="chk"><input type="checkbox" id="subs" checked> Legendas (nome de quem fala + texto)</label>
-    <button class="big" id="btnAnalyze">✨ Criar personagens e cenários</button>
+    <label class="chk"><input type="checkbox" id="review"> Revisar antes de gerar (personagens, vozes e roteiro)</label>
+    <button class="big" id="btnGo">🎬 Gerar vídeo</button>
     <div id="msg1"></div>
   </section>
 
   <section class="card hidden" id="step2">
-    <h2>2. Prévia: personagens, vozes e cenários</h2>
+    <h2>Revisar: personagens, vozes, cenários e roteiro</h2>
     <p class="hint">Cada personagem é desenhado <b>uma vez</b> e reaproveitado em todas as cenas. Não gostou? Toque em 🔄 para gerar outro. Toque no desenho para marcar onde fica a <b>boca</b> (ponto vermelho).</p>
     <div id="msg2"></div>
     <h3 style="margin:12px 0 6px;font-size:1rem">Personagens</h3>
@@ -118,14 +119,16 @@ footer a{color:var(--pri)}
     </div>
     <h3 style="margin:14px 0 6px;font-size:1rem">Cenários</h3>
     <div class="grid" id="bgGrid"></div>
+    <label for="script" style="margin-top:14px">Roteiro (pode editar: <b>Nome: fala</b>, <b>## Lugar</b> para cena)</label>
+    <textarea id="script" spellcheck="true" style="min-height:200px"></textarea>
     <button class="big" id="btnRender" disabled>🎬 Gerar vídeo</button>
     <p class="hint" id="renderHint">Na primeira vez o modelo de voz (~92 MB) é baixado e fica guardado no navegador.</p>
   </section>
 
   <section class="card hidden" id="step3">
-    <h2>3. Vídeo</h2>
+    <h2>2. Seu vídeo</h2>
     <div class="stages" id="stages">
-      <span data-s="1">1 Modelo de voz</span><span data-s="2">2 Vozes</span><span data-s="3">3 Animação + vídeo</span><span data-s="4">4 Finalizar</span>
+      <span data-s="1">1 Roteiro</span><span data-s="2">2 Desenhos</span><span data-s="3">3 Modelo de voz</span><span data-s="4">4 Vozes</span><span data-s="5">5 Vídeo</span>
     </div>
     <div id="stageTxt">Preparando…</div>
     <div class="prog"><div id="progBar"></div></div>
@@ -137,6 +140,7 @@ footer a{color:var(--pri)}
         <button id="btnDownload">⬇️ Baixar</button>
         <button id="btnShare" class="sec">📤 Compartilhar</button>
       </div>
+      <button id="btnAdjust" class="sec big">✏️ Ajustar e gerar de novo</button>
       <p class="hint" id="resultInfo"></p>
     </div>
     <div class="acts" style="margin-top:10px">
@@ -148,6 +152,7 @@ footer a{color:var(--pri)}
   <details class="card">
     <summary>Como funciona / limites</summary>
     <ul class="hint">
+      <li>Roteiro: IA de texto gratuita do <b>Pollinations.ai</b> (sem chave). Se ela estiver fora do ar, o app monta o roteiro sozinho (aspas/travessões viram falas).</li>
       <li>Imagens: <b>Pollinations.ai</b> (gratuito). Pode demorar de 10 s a 2 min por imagem; se falhar, o app tenta de novo sozinho.</li>
       <li>Vozes: <b>Kokoro TTS</b> rodando no seu celular (vozes pt-BR Dora, Alex e Santa). O primeiro uso baixa ~92 MB; depois fica em cache.</li>
       <li>Vídeo: montado e codificado localmente em <b>MP4 (H.264 + AAC)</b>. Nada é enviado para servidores.</li>
@@ -420,16 +425,11 @@ const FORMATS = { "9:16": [720, 1280], "16:9": [1280, 720], "1:1": [960, 960], "
 const BG_SIZE = { "9:16": [576, 1024], "16:9": [1024, 576], "1:1": [832, 832], "4:5": [704, 880] };
 const NARRATOR_NAMES = ["narrador", "narradora", "narracao", "narrator", "narração"];
 const CHAR_COLORS = ["#ffd23f", "#6ee7ff", "#ff8fd8", "#9dff7a", "#ffb36b", "#c3a6ff", "#ff6b6b", "#7af0c4"];
-const EXAMPLE = `## Floresta encantada de manhã
-Narrador: Numa manhã de sol, Luna, uma menina de cabelo cacheado e vestido amarelo, passeava pela floresta.
-Pipo, um coelho branco de colete azul, veio pulando até ela.
-Pipo: Luna! Você viu a minha cenoura dourada?
-Luna: Não vi, Pipo. Mas eu te ajudo a procurar!
+const EXAMPLE = `Numa manhã de sol, a menina Luna, de cabelo cacheado e vestido amarelo, passeava pela floresta quando encontrou Pipo, um coelho branco de colete azul, chorando perto de uma árvore. Ele tinha perdido a sua cenoura dourada, presente da avó.
 
-## Beira do rio à tarde
-Narrador: Os dois seguiram até o rio, onde algo brilhava na água.
-Luna: Olha lá! Está perto da pedra grande.
-Pipo: Uau! Você é a melhor amiga do mundo!`;
+Luna prometeu ajudar. Os dois procuraram atrás das pedras, dentro de um tronco oco e até perguntaram para uma coruja sonolenta, que apontou para o rio.
+
+Na beira do rio, algo brilhava na água. Era a cenoura dourada, presa entre as pedras! Luna estendeu um galho, Pipo puxou com força e os dois caíram sentados na grama, rindo. Pipo abraçou Luna e disse que ela era a melhor amiga do mundo.`;
 
 // ===================== Utilidades =====================
 const $ = (id) => document.getElementById(id);
@@ -774,7 +774,7 @@ function assignVoices(order) {
   for (const key of order) {
     const c = S.chars.get(key);
     if (c.voiceSetByUser) { count[c.voice] = (count[c.voice] || 0) + 1; continue; }
-    const female = looksFemale(c.name);
+    const female = c.gender ? c.gender === "f" : looksFemale(c.name);
     const prefs = female ? ["pf_dora", "pm_alex", "pm_santa"] : ["pm_alex", "pm_santa", "pf_dora"];
     // voz ainda livre (preferindo o gênero); se todas usadas, repete a preferida variando a velocidade
     let v = prefs.find((p) => count[p] === 0 && (female ? p === "pf_dora" : p !== "pf_dora"));
@@ -783,38 +783,181 @@ function assignVoices(order) {
   }
 }
 
-function analyze() {
-  const text = $("story").value.trim() || EXAMPLE;
-  if (!$("story").value.trim()) $("story").value = EXAMPLE;
-  try { localStorage.setItem("df_story", $("story").value); localStorage.setItem("df_style", $("style").value); } catch (_) {}
-  const scenes = parseStory(text);
-  if (!scenes.length) { msg("msg1", "Não encontrei falas nem narração. Cole a história no campo acima.", "err"); return; }
-  msg("msg1", "");
+// ===================== 1b. História em prosa → roteiro =====================
+const TEXT_API = "https://text.pollinations.ai/openai";
+function hasNameFormat(text) {
+  if (/^\s*##/m.test(text)) return true;
+  const n = text.split("\n").filter((l) => /^\s*[-–—•*]?\s*\**[A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ0-9'’.\- ]{0,28}\**\s*(\([^)]{0,40}\))?\s*[:：]\s*\S/.test(l) && l.split(":")[0].trim().split(/\s+/).length <= 3).length;
+  return n >= 2;
+}
+function wordCount(t) { return (t.match(/[A-Za-zÀ-ÿ0-9]+/g) || []).length; }
+function targetWords(target, story) { return target > 0 ? Math.round(target * 2.5 * 0.85) : Math.max(70, Math.min(200, Math.round(wordCount(story) * 0.9))); }
+function extractJSON(s) {
+  if (!s) throw new Error("resposta vazia");
+  s = String(s).replace(/<think>[\s\S]*?<\/think>/g, "").replace(/```(?:json)?/gi, "");
+  const a = s.indexOf("{"), b = s.lastIndexOf("}");
+  if (a < 0 || b <= a) throw new Error("a IA não devolveu JSON");
+  let j = s.slice(a, b + 1);
+  try { return JSON.parse(j); } catch (_) {}
+  j = j.replace(/,\s*([}\]])/g, "$1").replace(/[“”]/g, '"');
+  return JSON.parse(j);
+}
+function normalizeScript(o) {
+  if (!o || !Array.isArray(o.scenes)) throw new Error("JSON sem cenas");
+  const chars = [];
+  const byKey = new Map();
+  const addChar = (name, description, gender) => {
+    name = String(name || "").replace(/[:*"]/g, "").trim().slice(0, 30);
+    if (!name || NARRATOR_NAMES.includes(norm(name))) return null;
+    const key = norm(name);
+    if (!byKey.has(key)) { const c = { name, key, description: String(description || "").slice(0, 300), gender: /^f|fem|mulher|menina|woman|girl/i.test(String(gender || "")) ? "f" : /^m|masc|homem|menino|man|boy/i.test(String(gender || "")) ? "m" : "" }; byKey.set(key, c); chars.push(c); }
+    return byKey.get(key);
+  };
+  (Array.isArray(o.characters) ? o.characters : []).forEach((c) => c && addChar(c.name, c.description || c.visual || c.appearance, c.gender || c.voice || c.voice_hint));
+  const scenes = [];
+  for (const sc of o.scenes) {
+    if (!sc || !Array.isArray(sc.lines)) continue;
+    const lines = [];
+    for (const l of sc.lines) {
+      if (!l) continue;
+      const text = String(l.text || l.fala || "").replace(/\s+/g, " ").trim();
+      if (!text || !/[A-Za-zÀ-ÿ0-9]/.test(text)) continue;
+      let sp = String(l.speaker || l.personagem || "Narrador").trim();
+      const c = NARRATOR_NAMES.includes(norm(sp)) ? null : addChar(sp, "", "");
+      lines.push({ speaker: c ? c.name : null, key: c ? c.key : null, text });
+    }
+    if (!lines.length) continue;
+    scenes.push({ location: String(sc.place || sc.location || "").slice(0, 60).trim(), bgPrompt: String(sc.background || sc.location || sc.place || "").slice(0, 300).trim(), lines });
+  }
+  if (!scenes.length) throw new Error("roteiro vazio");
+  const used = new Set(scenes.flatMap((s) => s.lines.map((l) => l.key)).filter(Boolean));
+  return { scenes, chars: chars.filter((c) => used.has(c.key)), source: "llm" };
+}
+async function llmScript(story, target, onStatus) {
+  const words = targetWords(target, story);
+  const secs = target > 0 ? target : Math.round(words / 2.5);
+  const system = `You are a screenwriter for short 2D cartoon videos. Convert the user's story into a video script in Brazilian Portuguese.
+Rules:
+- Turn the story into mostly DIALOGUE between the characters (at least 70% of the lines spoken by characters). Use the narrator ("Narrador") only for short connecting lines.
+- Keep the plot and the characters' names. Invent natural, lively lines they would say.
+- 2 to 4 scenes. At most 4 speaking characters. Each line at most 25 words.
+- Total spoken words about ${words} (the video must last about ${secs} seconds at 2.5 words per second).
+- "description" (in English): visual description for a consistent full-body cartoon portrait (species/age, hair, clothes, colors). "gender": "female" or "male".
+- "place": short place name in Portuguese (2-5 words). "background" (in English): visual description of the background scenery with NO people, NO characters.
+Answer ONLY with a JSON object, no markdown, exactly in this shape:
+{"characters":[{"name":"","description":"","gender":"female"}],"scenes":[{"place":"","background":"","lines":[{"speaker":"Narrador","text":""}]}]}`;
+  let lastErr;
+  for (let a = 1; a <= 3; a++) {
+    if (S.cancel) throw new Cancelled();
+    onStatus(a === 1 ? "A IA está escrevendo o roteiro com diálogos…" : `Roteiro: tentando de novo (${a}/3)…`);
+    const ctl = new AbortController(); const tm = setTimeout(() => ctl.abort(), 150000);
+    try {
+      const r = await fetch(TEXT_API, {
+        method: "POST", headers: { "Content-Type": "application/json" }, signal: ctl.signal,
+        body: JSON.stringify({ model: "openai", seed: randSeed() % 100000, messages: [{ role: "system", content: system }, { role: "user", content: "História:\n" + story.slice(0, 6000) }] })
+      });
+      const body = await r.text();
+      if (!r.ok) throw new HttpErr(r.status, r.status === 402 || r.status === 429 ? "servidor de texto gratuito ocupado" : "erro do servidor de texto (" + r.status + ")");
+      let content = body;
+      try { const j = JSON.parse(body); if (j.choices) content = j.choices[0].message.content; else if (j.error) throw new Error(String(j.error).slice(0, 120)); } catch (e) { if (!(e instanceof SyntaxError)) throw e; }
+      return normalizeScript(extractJSON(content));
+    } catch (e) {
+      lastErr = e.name === "AbortError" ? new Error("tempo esgotado") : e;
+      console.warn("LLM falhou", e);
+      if (a < 3) { const wait = e.status === 402 || e.status === 429 ? 15 : 4; for (let s = wait; s > 0; s--) { if (S.cancel) throw new Cancelled(); onStatus(`Roteiro: ${esc(lastErr.message)}; nova tentativa em ${s}s`); await sleep(1000); } }
+    } finally { clearTimeout(tm); }
+  }
+  throw lastErr;
+}
+// Sem IA: aspas/travessões viram falas, o resto vira narração
+function heuristicProse(text) {
+  const paras = text.replace(/\r/g, "").split(/\n\s*\n|\n(?=\s*[—–-]\s)/).map((p) => p.replace(/\s+/g, " ").trim()).filter(Boolean);
+  const verbs = "disse|perguntou|respondeu|gritou|falou|exclamou|sussurrou|chamou|comentou|explicou|pediu|murmurou|continuou|completou|avisou|riu|contou";
+  const NAME = "([A-ZÀ-Ý][a-zà-ÿ]+(?:\\s[A-ZÀ-Ý][a-zà-ÿ]+)?)";
+  const reAfter = new RegExp("(?:" + verbs + ")\\s+(?:o |a |a pequena |o pequeno )?" + NAME), reBefore = new RegExp(NAME + "\\s+(?:" + verbs + ")");
+  const STOP = new Set(["Ele", "Ela", "Eles", "Elas", "Então", "Depois", "Quando", "Mas", "Era", "Um", "Uma", "O", "A", "No", "Na"]);
+  const who = (s) => { let m = s.match(reAfter) || s.match(reBefore); return m && !STOP.has(m[1]) ? m[1] : null; };
+  const out = []; let last = null, prev = null;
+  for (const p of paras) {
+    const quotes = [];
+    let rest = p;
+    if (/^[—–-]\s/.test(p)) { // diálogo com travessão: — Fala — disse Fulano. — Mais fala.
+      const parts = p.replace(/^[—–-]\s*/, "").split(/\s[—–]\s/);
+      parts.forEach((s, i) => { if (i % 2 === 0) quotes.push(s); });
+      rest = parts.filter((_, i) => i % 2 === 1).join(" ");
+    } else {
+      rest = p.replace(/[“"]([^”"]{2,300})[”"]/g, (m, q) => { quotes.push(q); return " § "; });
+    }
+    const sp = who(rest) || who(p);
+    if (quotes.length) {
+      let speaker = sp || (prev && last ? prev : null);
+      quotes.forEach((q) => out.push({ speaker, text: q.trim() }));
+      if (speaker && speaker !== last) { prev = last; last = speaker; }
+      const narr = rest.replace(/§/g, "").replace(new RegExp("^[,.\\s]*(?:" + verbs + ")[^.!?]*[.!?]?", "i"), "").trim();
+      if (narr.length > 25 && !sp) out.push({ speaker: null, text: narr });
+    } else out.push({ speaker: null, text: p });
+  }
+  // agrupa em até 4 cenas
+  const nS = Math.max(1, Math.min(4, Math.ceil(paras.length / 3)));
+  const per = Math.ceil(out.length / nS);
+  const scenes = [];
+  for (let i = 0; i < out.length; i += per) {
+    const lines = out.slice(i, i + per).flatMap((l) => (l.speaker ? [l] : splitChunks(l.text, 220).map((t) => ({ speaker: null, text: t }))))
+      .map((l) => ({ speaker: l.speaker, key: l.speaker ? norm(l.speaker) : null, text: l.text }));
+    scenes.push({ location: "", lines });
+  }
+  const names = [...new Set(out.filter((l) => l.speaker).map((l) => l.speaker))];
+  // nomes próprios citados 2+ vezes no meio da frase também entram em cena (sem falar)
+  const cnt = {};
+  for (const m of text.matchAll(/[a-zà-ÿ,]\s+([A-ZÀ-Ý][a-zà-ÿ]{2,})/g)) if (!STOP.has(m[1])) cnt[m[1]] = (cnt[m[1]] || 0) + 1;
+  Object.keys(cnt).filter((n) => cnt[n] >= 2 && !names.includes(n)).slice(0, Math.max(0, 4 - names.length)).forEach((n) => names.push(n));
+  return { scenes, chars: names.map((n) => ({ name: n, key: norm(n), description: guessDescription(n, text), gender: "" })), source: "heuristic" };
+}
+async function makeScript(text, target, onStatus) {
+  if (hasNameFormat(text)) {
+    const scenes = parseStory(text);
+    const keys = [...new Set(scenes.flatMap((s) => s.lines).filter((l) => l.key).map((l) => l.key))];
+    const chars = keys.map((k) => { const n = scenes.flatMap((s) => s.lines).find((l) => l.key === k).speaker; return { name: n, key: k, description: guessDescription(n, text), gender: "" }; });
+    return { scenes, chars, source: "format" };
+  }
+  try { return await llmScript(text, target, onStatus); }
+  catch (e) {
+    if (e instanceof Cancelled) throw e;
+    addMsg("msg3", `Não consegui usar a IA de roteiro agora (${esc(e.message)}). Montei o roteiro localmente: falas entre aspas ou travessão viram diálogo e o resto vira narração. Você pode “Ajustar e gerar de novo”.`, "warn");
+    return heuristicProse(text);
+  }
+}
+function scriptToText() {
+  return S.scenes.map((sc, i) => "## " + (sc.location || "Cena " + (i + 1)) + "\n" + sc.lines.map((l) => (l.speaker || "Narrador") + ": " + l.text).join("\n")).join("\n\n");
+}
+function setupFromScript(script, storyText) {
+  const scenes = script.scenes;
   const style = $("style").value.trim() || "cartoon 2D colorido, traço limpo, estilo animação infantil";
-  S.style = style;
-  S.scenes = scenes;
-  // personagens
+  S.style = style; S.scenes = scenes;
+  const info = new Map(script.chars.map((c) => [c.key, c]));
   const order = [];
   for (const sc of scenes) for (const ln of sc.lines) if (ln.key && !order.includes(ln.key)) order.push(ln.key);
-  if (order.length > 8) addMsg("msg1", `Encontrei ${order.length} personagens. Muitos personagens deixam a geração lenta; o ideal são até 4–5.`, "warn");
+  for (const c of script.chars) if (!order.includes(c.key) && order.length < 5) order.push(c.key);
   const newChars = new Map();
   order.forEach((key, i) => {
+    const ci = info.get(key) || {};
+    const name = ci.name || (scenes.flatMap((s) => s.lines).find((l) => l.key === key) || {}).speaker || key;
     let c = S.charCache.get(key);
-    const name = scenes.flatMap((s) => s.lines).find((l) => l.key === key).speaker;
     if (!c) {
-      c = { key, name, desc: guessDescription(name, text), seed: hashSeed(key + "|v1"), voice: "pf_dora", speed: 1, color: CHAR_COLORS[i % CHAR_COLORS.length], sprite: null, status: "", mouthUser: null, img: null, loadedPrompt: null };
+      c = { key, name, desc: "", seed: hashSeed(key + "|v1"), voice: "pf_dora", speed: 1, sprite: null, status: "", mouthUser: null, img: null, loadedPrompt: null };
       S.charCache.set(key, c);
     }
+    if (!c.descSetByUser) c.desc = ci.description || c.desc || guessDescription(name, storyText);
+    if (ci.gender) c.gender = ci.gender;
     c.name = name; c.color = CHAR_COLORS[i % CHAR_COLORS.length];
     newChars.set(key, c);
   });
   S.chars = newChars; S.charOrder = order;
   assignVoices(order);
-  // cenários: cada cena com ## ou narração ganha fundo; senão herda o anterior
   S.bgs = [];
   let prevBg = null;
-  scenes.forEach((sc, i) => {
-    let loc = sc.location;
+  scenes.forEach((sc) => {
+    let loc = sc.bgPrompt || sc.location;
     if (!loc) { const nar = sc.lines.find((l) => !l.key); if (nar) loc = nar.text.slice(0, 140); }
     if (!loc && prevBg) { sc.bg = prevBg; return; }
     if (!loc) loc = "um lugar alegre ao ar livre, dia ensolarado";
@@ -830,10 +973,67 @@ function analyze() {
     if (!keys.length) for (const k of order) { const c = S.chars.get(k); if (new RegExp("\\b" + c.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b", "i").test(sc.lines.map((l) => l.text).join(" "))) keys.push(k); }
     sc.chars = keys;
   });
+  S.scriptText = scriptToText();
   buildPreview();
-  $("step2").classList.remove("hidden");
-  $("step2").scrollIntoView({ behavior: "smooth", block: "start" });
-  generateAll();
+  $("script").value = S.scriptText;
+}
+function startRunUI() {
+  $("step3").classList.remove("hidden"); $("result").classList.add("hidden"); $("btnCancel").classList.remove("hidden");
+  msg("msg3", ""); $("step3").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+// Botão único: história → roteiro → desenhos → vozes → MP4
+async function oneTap() {
+  if (S.busy || S.preparing) return;
+  let text = $("story").value.trim();
+  if (!text) { text = EXAMPLE; $("story").value = EXAMPLE; }
+  try { localStorage.setItem("df_story", $("story").value); localStorage.setItem("df_style", $("style").value); } catch (_) {}
+  msg("msg1", "");
+  S.preparing = true; S.cancel = false; $("btnGo").disabled = true; updateRenderBtn();
+  startRunUI();
+  const review = $("review").checked;
+  try {
+    if (S.ttsMode === "kokoro" && !review) ttsLoad(() => {}).catch(() => {}); // baixa a voz em paralelo
+    setStage(1, "Escrevendo o roteiro…", 0.02);
+    const script = await makeScript(text, +$("duration").value, (t) => setStage(1, t, 0.05));
+    if (S.cancel) throw new Cancelled();
+    const nl = script.scenes.reduce((a, s) => a + s.lines.length, 0);
+    if (!nl) throw new Error("não encontrei texto na história");
+    setupFromScript(script, text);
+    addMsg("msg3", `Roteiro: ${script.scenes.length} cena(s), ${nl} falas, ${S.charOrder.length} personagem(ns)` + (script.source === "llm" ? " (escrito pela IA)." : script.source === "format" ? " (formato Nome: fala)." : " (montado localmente)."), "info");
+    if (review) {
+      $("step2").classList.remove("hidden");
+      generateAll();
+      setStage(2, "Revise personagens, vozes e roteiro e toque em “Gerar vídeo” abaixo.", 0.1);
+      $("btnCancel").classList.add("hidden");
+      $("step2").scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+    let done = 0; const total = S.charOrder.length + S.bgs.length;
+    setStage(2, `Desenhando personagens e cenários (0 de ${total})…`, 0.1);
+    await generateAll(() => { done++; setStage(2, `Desenhando personagens e cenários (${done} de ${total})…`, 0.1 + 0.25 * (done / Math.max(1, total))); });
+    if (S.cancel) throw new Cancelled();
+    S.preparing = false;
+    await render(true);
+  } catch (e) {
+    if (e instanceof Cancelled) setStage(0, "Cancelado.", 0);
+    else { console.error(e); addMsg("msg3", "Erro: " + esc(e.message || String(e)), "err"); setStage(0, "Falhou.", 0); }
+    $("btnCancel").classList.add("hidden");
+  } finally { S.preparing = false; $("btnGo").disabled = false; updateRenderBtn(); }
+}
+// Na tela de revisão: aplica o roteiro editado (se mudou) e gera
+function reviewGenerate() {
+  const t = $("script").value.trim();
+  if (t && t !== S.scriptText) {
+    const scenes = parseStory(t);
+    if (!scenes.length) { msg("msg2", "O roteiro ficou vazio. Use linhas “Nome: fala” e “## Lugar”.", "err"); return; }
+    const chars = S.charOrder.map((k) => S.chars.get(k)).map((c) => ({ name: c.name, key: c.key, description: c.desc, gender: c.gender || "" }));
+    const oldBg = new Map(S.scenes.map((s, i) => [norm(s.location || "Cena " + (i + 1)), s.bgPrompt || (s.bg && s.bg.loc) || ""]));
+    scenes.forEach((s) => { const k = norm(s.location || ""); s.bgPrompt = oldBg.get(k) || ""; if (/^cena \d+$/.test(k)) { s.location = ""; if (!s.bgPrompt) s.bgPrompt = ""; } });
+    setupFromScript({ scenes, chars }, $("story").value);
+    const missing = S.charOrder.some((k) => !S.chars.get(k).sprite) || S.bgs.some((b) => !b.img);
+    if (missing) { generateAll(); msg("msg2", "Roteiro atualizado. Gerando os desenhos que faltam; toque em Gerar vídeo quando terminar.", "info"); return; }
+  }
+  render(false);
 }
 
 function buildPreview() {
@@ -851,8 +1051,8 @@ function buildPreview() {
     voiceSelect(el.querySelector(".voice"), c.voice); speedSelect(el.querySelector(".speed"), c.speed);
     el.querySelector(".voice").onchange = (e) => { c.voice = e.target.value; c.voiceSetByUser = true; };
     el.querySelector(".speed").onchange = (e) => { c.speed = +e.target.value; c.voiceSetByUser = true; };
-    el.querySelector(".desc").onchange = (e) => { c.desc = e.target.value.trim(); };
-    el.querySelector(".regen").onclick = () => { c.desc = el.querySelector(".desc").value.trim(); c.seed = randSeed(); c.mouthUser = null; loadChar(c, true); };
+    el.querySelector(".desc").onchange = (e) => { c.desc = e.target.value.trim(); c.descSetByUser = true; };
+    el.querySelector(".regen").onclick = () => { c.desc = el.querySelector(".desc").value.trim(); c.descSetByUser = true; c.seed = randSeed(); c.mouthUser = null; loadChar(c, true); };
     el.querySelector(".test").onclick = () => testVoice(c.voice, c.speed, `Olá! Eu sou ${c.name}. Vamos começar a nossa história?`, el.querySelector(".test"));
     el.querySelector(".thumb").onclick = (ev) => setMouth(c, ev);
     if (c.sprite) showCharThumb(c);
@@ -944,17 +1144,17 @@ async function loadBg(bg, i, force) {
   }
   updateRenderBtn();
 }
-function generateAll() {
+function generateAll(onEach) {
   msg("msg2", "Gerando desenhos no Pollinations.ai (grátis). Cada imagem pode levar de 10 s a 2 min…", "info");
-  S.charOrder.forEach((k) => loadChar(S.chars.get(k), false));
-  S.bgs.forEach((bg, i) => loadBg(bg, i, false));
+  const ps = [...S.charOrder.map((k) => loadChar(S.chars.get(k), false)), ...S.bgs.map((bg, i) => loadBg(bg, i, false))];
+  return Promise.all(ps.map((p) => p.catch(() => {}).then(() => onEach && onEach())));
 }
 function updateRenderBtn() {
   const cs = S.charOrder.map((k) => S.chars.get(k));
   const loading = cs.some((c) => c.status === "loading") || S.bgs.some((b) => b.status === "loading");
   const fails = cs.filter((c) => c.status === "fail").length + S.bgs.filter((b) => b.status === "fail").length;
   const btn = $("btnRender");
-  btn.disabled = loading || S.busy;
+  btn.disabled = loading || S.busy || S.preparing;
   if (!$("step2").classList.contains("hidden")) {
     if (loading) { /* mensagem já mostrada */ }
     else if (fails) msg("msg2", `${fails} imagem(ns) falharam (o servidor gratuito pode estar lento). Toque em 🔄 para tentar de novo, ou gere o vídeo assim mesmo (uso desenho/fundo simples).`, "warn");
@@ -1281,25 +1481,25 @@ function setStage(n, text, frac) {
   if (frac != null) $("progBar").style.width = (clamp(frac) * 100).toFixed(1) + "%";
 }
 let wakeLock = null;
-async function render() {
+async function render(fromOneTap) {
   if (S.busy) return;
-  S.busy = true; S.cancel = false; S._lineWarn = false; updateRenderBtn();
-  $("step3").classList.remove("hidden"); $("result").classList.add("hidden"); $("btnCancel").classList.remove("hidden");
-  msg("msg3", ""); $("step3").scrollIntoView({ behavior: "smooth", block: "start" });
+  S.busy = true; S.cancel = false; S._lineWarn = false; updateRenderBtn(); $("btnGo").disabled = true;
+  if (!fromOneTap) startRunUI();
+  $("btnCancel").classList.remove("hidden");
   try { wakeLock = await navigator.wakeLock?.request("screen"); } catch (_) {}
   const fmt = $("format").value, [W, H] = FORMATS[fmt];
   const target = +$("duration").value;
   try {
     // cenários no formato certo? (se o formato mudou, o recorte "cover" resolve)
-    setStage(1, "Carregando modelo de voz Kokoro…", 0);
+    setStage(3, "Carregando modelo de voz Kokoro…", 0.35);
     if (S.ttsMode === "kokoro") {
       try {
-        await ttsLoad((L, T) => setStage(1, `Baixando modelo de voz: ${(L / 1e6).toFixed(0)} de ${(T / 1e6).toFixed(0)} MB (só na primeira vez)`, (L / T) * 0.15));
+        await ttsLoad((L, T) => setStage(3, `Baixando modelo de voz: ${(L / 1e6).toFixed(0)} de ${(T / 1e6).toFixed(0)} MB (só na primeira vez)`, 0.35 + (L / T) * 0.1));
       } catch (e) { kokoroFailed(e); }
     }
     if (S.cancel) throw new Cancelled();
-    setStage(2, "Gerando vozes…", 0.15);
-    const tl = await buildTimeline(target, (d, n) => setStage(2, `Gerando vozes: fala ${d} de ${n}${S.ttsMode === "kokoro" ? "" : " (voz do navegador)"}`, 0.15 + 0.35 * (d / n)));
+    setStage(4, "Gerando vozes…", 0.45);
+    const tl = await buildTimeline(target, (d, n) => setStage(4, `Gerando vozes: fala ${d} de ${n}${S.ttsMode === "kokoro" ? "" : " (voz do navegador)"}`, 0.45 + 0.2 * (d / n)));
     S.timeline = tl;
     if (tl.warn) addMsg("msg3", tl.warn, "warn");
     const pcm = S.ttsMode === "kokoro" ? mixAudio(tl) : null;
@@ -1307,24 +1507,24 @@ async function render() {
     let res;
     const t0 = performance.now();
     if (vcfg) {
-      setStage(3, "Animando e codificando MP4…", 0.5);
+      setStage(5, "Animando e codificando MP4…", 0.65);
       res = await exportWebCodecs(tl, pcm, W, H, vcfg, (f) => {
         const el = (performance.now() - t0) / 1000, eta = f > 0.03 ? Math.round(el / f - el) : null;
-        setStage(3, `Animando e codificando MP4: ${Math.round(f * 100)}%${eta != null ? ` (faltam ~${eta}s)` : ""}`, 0.5 + 0.47 * f);
+        setStage(5, `Animando e codificando MP4: ${Math.round(f * 100)}%${eta != null ? ` (faltam ~${eta}s)` : ""}`, 0.65 + 0.33 * f);
       });
     } else {
       addMsg("msg3", "Seu navegador não tem WebCodecs (codificador de vídeo). Vou gravar em tempo real com MediaRecorder: o arquivo sai em <b>WebM</b> (algumas redes pedem conversão para MP4). Mantenha a tela ligada e este app aberto até terminar.", "warn");
-      setStage(3, "Gravando em tempo real (WebM)…", 0.5);
-      res = await exportMediaRecorder(tl, pcm, W, H, (f) => setStage(3, `Gravando em tempo real: ${Math.round(f * 100)}%`, 0.5 + 0.47 * f));
+      setStage(5, "Gravando em tempo real (WebM)…", 0.65);
+      res = await exportMediaRecorder(tl, pcm, W, H, (f) => setStage(5, `Gravando em tempo real: ${Math.round(f * 100)}%`, 0.65 + 0.33 * f));
     }
-    setStage(4, "Finalizando…", 0.98);
+    setStage(5, "Finalizando…", 0.99);
     showResult(res, tl, W, H);
-    setStage(5, "Pronto! 🎉", 1);
+    setStage(6, "Pronto! 🎉", 1);
   } catch (e) {
     if (e instanceof Cancelled) { setStage(0, "Cancelado.", 0); }
     else { console.error(e); addMsg("msg3", "Erro ao gerar o vídeo: " + esc(e.message || String(e)) + ". Tente de novo; se persistir, escolha outro formato ou diminua a história.", "err"); setStage(0, "Falhou.", 0); }
   } finally {
-    S.busy = false; updateRenderBtn(); $("btnCancel").classList.add("hidden");
+    S.busy = false; updateRenderBtn(); $("btnCancel").classList.add("hidden"); $("btnGo").disabled = false;
     $("btnLive").classList.toggle("hidden", !(S.ttsMode !== "kokoro" && S.timeline && webSpeechAvailable()));
     try { wakeLock && wakeLock.release(); } catch (_) {} wakeLock = null;
   }
@@ -1386,8 +1586,11 @@ function checkEnv() {
 function init() {
   $("story").placeholder = EXAMPLE;
   try { const s = localStorage.getItem("df_story"); if (s) $("story").value = s; const st = localStorage.getItem("df_style"); if (st) $("style").value = st; } catch (_) {}
-  $("btnAnalyze").onclick = analyze;
-  $("btnRender").onclick = render;
+  $("btnGo").onclick = oneTap;
+  $("btnRender").onclick = reviewGenerate;
+  $("btnAdjust").onclick = () => { $("step2").classList.remove("hidden"); $("script").value = S.scriptText || scriptToText(); updateRenderBtn(); $("step2").scrollIntoView({ behavior: "smooth", block: "start" }); };
+  try { $("review").checked = localStorage.getItem("df_review") === "1"; } catch (_) {}
+  $("review").onchange = () => { try { localStorage.setItem("df_review", $("review").checked ? "1" : "0"); } catch (_) {} };
   $("btnCancel").onclick = () => { S.cancel = true; try { speechSynthesis.cancel(); } catch (_) {} };
   $("btnDownload").onclick = download;
   $("btnShare").onclick = share;
@@ -1403,7 +1606,7 @@ function init() {
 }
 init();
 // Exposto para testes automatizados
-window.__DF = { S, parseStory, PTG2P, buildTimeline, mixAudio, drawFrame, exportWebCodecs, pickVideoConfig, pickAudioConfig, keyOut, ttsLoad, ttsSpeakText, analyze, render, splitChunks };
+window.__DF = { S, parseStory, makeScript, llmScript, heuristicProse, normalizeScript, extractJSON, hasNameFormat, oneTap, PTG2P, buildTimeline, mixAudio, drawFrame, exportWebCodecs, pickVideoConfig, pickAudioConfig, keyOut, ttsLoad, ttsSpeakText, render, splitChunks };
 
 </script>
 </body>
